@@ -1,46 +1,46 @@
 # Go Image Resize Tool Makefile
 
-# 變數定義
+# Variable definitions
 BINARY_NAME=resize-tool
 MAIN_PACKAGE=.
 BUILD_DIR=build
 
-# 預設目標
+# Default target
 all: build
 
-# 建構應用程式
+# Build the application
 build:
 	@echo "Building $(BINARY_NAME)..."
 	go build -o $(BINARY_NAME) $(MAIN_PACKAGE)
 
-# 建構並輸出到 build 目錄
+# Build and output to build directory
 build-dir:
 	@echo "Building $(BINARY_NAME) to $(BUILD_DIR) directory..."
 	@mkdir -p $(BUILD_DIR)
 	go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PACKAGE)
 
-# 安裝依賴
+# Install dependencies
 deps:
 	@echo "Installing dependencies..."
 	go mod tidy
 	go mod download
 
-# 執行測試
+# Run tests
 test:
 	@echo "Running tests..."
 	go test -v ./...
 
-# 清理建構檔案
+# Clean build files
 clean:
 	@echo "Cleaning build files..."
 	rm -f $(BINARY_NAME)
 	rm -rf $(BUILD_DIR)
 
-# 執行程式（需要提供圖片檔案參數）
+# Run the program (requires an image file argument)
 run:
 	@echo "Please specify an image file: make run-example"
 
-# 執行範例（如果有測試圖片）
+# Run example (if example image exists)
 run-example:
 	@if [ -f "example.jpg" ]; then \
 		./$(BINARY_NAME) example.jpg; \
@@ -50,7 +50,7 @@ run-example:
 		./$(BINARY_NAME) --help; \
 	fi
 
-# 建立發布版本（跨平台編譯）
+# Build release versions (cross-platform compilation)
 release:
 	@echo "Building release versions..."
 	@mkdir -p $(BUILD_DIR)
@@ -69,7 +69,7 @@ release:
 	
 	@echo "Release builds completed in $(BUILD_DIR)/"
 
-# 顯示幫助
+# Show help
 help:
 	@echo "Available targets:"
 	@echo "  build      - Build the application"
@@ -81,5 +81,5 @@ help:
 	@echo "  release    - Build for multiple platforms"
 	@echo "  help       - Show this help"
 
-# 定義 phony 目標
+# Define phony targets
 .PHONY: all build build-dir deps test clean run run-example release help
