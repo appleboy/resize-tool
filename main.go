@@ -22,7 +22,7 @@ var (
 	batchMode bool
 	workers   int
 	verbose   bool
-	// 標記是否明確設定了尺寸
+	// Flag to track if dimensions were explicitly set
 	widthSet  bool
 	heightSet bool
 )
@@ -41,7 +41,7 @@ will be calculated automatically to maintain aspect ratio.`,
 		Run:  processImages,
 	}
 
-	// 使用自訂的 flag 設定來追蹤哪些參數被明確設定
+	// Use custom flag settings to track which parameters were explicitly set
 	rootCmd.Flags().IntVarP(&width, "width", "w", 0, "Output width (pixels, 0=auto based on height)")
 	rootCmd.Flags().IntVarP(&height, "height", "", 0, "Output height (pixels, 0=auto based on width)")
 	rootCmd.Flags().IntVarP(&quality, "quality", "q", 95, "JPEG quality (1-100)")
@@ -51,13 +51,13 @@ will be calculated automatically to maintain aspect ratio.`,
 	rootCmd.Flags().IntVarP(&workers, "workers", "", 4, "Number of worker goroutines for batch processing")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
 
-	// 設定預設值和檢查參數
+	// Set default values and check parameters
 	rootCmd.PreRun = func(cmd *cobra.Command, args []string) {
-		// 檢查是否明確設定了尺寸
+		// Check if dimensions were explicitly set
 		widthSet = cmd.Flags().Changed("width")
 		heightSet = cmd.Flags().Changed("height")
 
-		// 如果都沒設定，使用預設值
+		// If neither is set, use default values
 		if !widthSet && !heightSet {
 			width = 800
 			height = 600
@@ -65,7 +65,7 @@ will be calculated automatically to maintain aspect ratio.`,
 			heightSet = true
 		}
 
-		// 驗證參數
+		// Validate parameters
 		if width < 0 || height < 0 {
 			log.Fatal("Width and height must be positive numbers")
 		}
@@ -85,17 +85,17 @@ will be calculated automatically to maintain aspect ratio.`,
 func processImages(cmd *cobra.Command, args []string) {
 	inputPath := args[0]
 
-	// 檢查輸入路徑
+	// Check input path
 	info, err := os.Stat(inputPath)
 	if os.IsNotExist(err) {
 		log.Fatalf("Path does not exist: %s", inputPath)
 	}
 
 	if info.IsDir() || batchMode {
-		// 目錄處理
+		// Directory processing
 		processBatch(inputPath)
 	} else {
-		// 單檔處理
+		// Single file processing
 		if err := resizeImage(inputPath); err != nil {
 			log.Fatalf("Failed to process image: %v", err)
 		}
@@ -108,7 +108,7 @@ func processBatch(dirPath string) {
 		fmt.Printf("Using %d workers\n", workers)
 	}
 
-	// 收集所有圖片檔案
+	// Collect all image files
 	imageFiles, err := collectImageFiles(dirPath)
 	if err != nil {
 		log.Fatalf("Failed to collect image files: %v", err)
@@ -138,7 +138,7 @@ func processBatch(dirPath string) {
 		}()
 	}
 
-	// 發送工作
+	// Send jobs
 	go func() {
 		defer close(jobs)
 		for _, filePath := range imageFiles {
@@ -146,13 +146,13 @@ func processBatch(dirPath string) {
 		}
 	}()
 
-	// 等待完成並收集結果
+	// Wait for completion and collect results
 	go func() {
 		wg.Wait()
 		close(results)
 	}()
 
-	// 統計結果
+	// Collect statistics
 	successCount := 0
 	errorCount := 0
 	for err := range results {
@@ -204,13 +204,13 @@ func resizeImage(inputPath string) error {
 		fmt.Printf("Processing: %s\n", inputPath)
 	}
 
-	// 開啟並解碼圖片
+	// Open and decode image
 	src, err := imaging.Open(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to open image %s: %v", inputPath, err)
 	}
 
-	// 取得原始圖片尺寸
+	// Get original image dimensions
 	originalBounds := src.Bounds()
 	originalWidth := originalBounds.Max.X
 	originalHeight := originalBounds.Max.Y
@@ -219,7 +219,7 @@ func resizeImage(inputPath string) error {
 		fmt.Printf("  Original size: %dx%d\n", originalWidth, originalHeight)
 	}
 
-	// 計算目標尺寸
+	// Calculate target dimensions
 	targetWidth, targetHeight := calculateTargetSize(originalWidth, originalHeight)
 
 	if verbose {
@@ -228,38 +228,38 @@ func resizeImage(inputPath string) error {
 
 	var resized image.Image
 
-	// 決定調整方式
+	// Determine resize method
 	if (widthSet && heightSet && keepRatio) || (!widthSet && heightSet) || (widthSet && !heightSet) {
-		// 保持比例調整
+		// Keep aspect ratio
 		if widthSet && !heightSet {
-			// 只設定寬度，高度自動計算
+			// Only width set, height auto-calculated
 			resized = imaging.Resize(src, targetWidth, 0, imaging.Lanczos)
 		} else if !widthSet && heightSet {
-			// 只設定高度，寬度自動計算
+			// Only height set, width auto-calculated
 			resized = imaging.Resize(src, 0, targetHeight, imaging.Lanczos)
 		} else {
-			// 兩者都設定，但要保持比例
+			// Both set, but keep ratio (fit within bounds)
 			resized = imaging.Fit(src, targetWidth, targetHeight, imaging.Lanczos)
 		}
 	} else {
-		// 強制調整到指定尺寸（可能會變形）
+		// Force resize to exact dimensions (may distort)
 		resized = imaging.Resize(src, targetWidth, targetHeight, imaging.Lanczos)
 	}
 
-	// 取得實際調整後的尺寸（用於檔名）
+	// Get actual resized dimensions (for filename)
 	actualBounds := resized.Bounds()
 	actualWidth := actualBounds.Max.X
 	actualHeight := actualBounds.Max.Y
 
-	// 確定輸出路徑
+	// Determine output path
 	outputPath := generateOutputPath(inputPath, outputDir, actualWidth, actualHeight)
 
-	// 確保輸出目錄存在
+	// Ensure output directory exists
 	if err := os.MkdirAll(filepath.Dir(outputPath), 0o755); err != nil {
 		return fmt.Errorf("failed to create output directory: %v", err)
 	}
 
-	// 儲存調整後的圖片
+	// Save resized image
 	var saveErr error
 	ext := strings.ToLower(filepath.Ext(inputPath))
 
@@ -282,13 +282,13 @@ func resizeImage(inputPath string) error {
 		return fmt.Errorf("failed to save image: %v", saveErr)
 	}
 
-	// 顯示結果資訊
+	// Display result information
 	if verbose || !batchMode {
 		fmt.Printf("Resized %s: %dx%d -> %dx%d\n",
 			filepath.Base(inputPath), originalWidth, originalHeight, actualWidth, actualHeight)
 		fmt.Printf("Output: %s\n", outputPath)
 
-		// 顯示檔案大小資訊
+		// Display file size information
 		originalInfo, _ := os.Stat(inputPath)
 		newInfo, _ := os.Stat(outputPath)
 
@@ -300,26 +300,26 @@ func resizeImage(inputPath string) error {
 }
 
 func calculateTargetSize(originalWidth, originalHeight int) (int, int) {
-	// 如果兩個尺寸都明確設定了，直接使用
+	// If both dimensions are explicitly set, use them directly
 	if widthSet && heightSet {
 		return width, height
 	}
 
-	// 如果只設定了寬度，按比例計算高度
+	// If only width is set, calculate height proportionally
 	if widthSet && !heightSet {
 		ratio := float64(originalHeight) / float64(originalWidth)
 		calculatedHeight := int(float64(width) * ratio)
 		return width, calculatedHeight
 	}
 
-	// 如果只設定了高度，按比例計算寬度
+	// If only height is set, calculate width proportionally
 	if !widthSet && heightSet {
 		ratio := float64(originalWidth) / float64(originalHeight)
 		calculatedWidth := int(float64(height) * ratio)
 		return calculatedWidth, height
 	}
 
-	// 這種情況不應該發生，因為在 PreRun 中已經處理了
+	// This case should not happen as it's handled in PreRun
 	return width, height
 }
 

@@ -1,22 +1,22 @@
 # Go Image Resize Tool
 
-一個簡單但功能強大的圖片調整大小工具，使用 Go 語言開發。
+A simple yet powerful image resizing tool built with Go.
 
-## 功能特色
+## Features
 
-- 支援多種圖片格式：JPEG, PNG, GIF, TIFF, BMP
-- **🎯 智慧比例調整**：只指定寬度或高度時，另一維度會自動按比例計算
-- 靈活的尺寸調整選項
-- 保持長寬比例選項
-- 可調整 JPEG 品質
-- 批次處理目錄中的所有圖片
-- 並行處理提高效率
-- 自訂輸出目錄
-- 詳細的進度和大小資訊顯示
+- Support for multiple image formats: JPEG, PNG, GIF, TIFF, BMP
+- **🎯 Smart Aspect Ratio**: When only width or height is specified, the other dimension is automatically calculated proportionally
+- Flexible resizing options
+- Aspect ratio preservation options
+- Adjustable JPEG quality
+- Batch processing for directories
+- Parallel processing for improved efficiency
+- Custom output directories
+- Detailed progress and size information display
 
-## 安裝
+## Installation
 
-### 從原始碼編譯
+### Build from Source
 
 ```bash
 git clone <your-repo>
@@ -25,84 +25,84 @@ go mod tidy
 go build -o resize-tool .
 ```
 
-### 直接使用
+### Direct Usage
 
-如果你已經有編譯好的執行檔，可以直接使用：
+If you have the compiled binary, you can use it directly:
 
 ```bash
-./resize-tool [選項] <圖片檔案>
+./resize-tool [options] <image-file>
 ```
 
-## 使用方法
+## Usage
 
-### 基本用法
+### Basic Usage
 
 ```bash
-# 預設調整圖片到 800x600 像素
+# Default resize to 800x600 pixels
 ./resize-tool image.jpg
 
-# 🎯 只指定寬度，高度自動按比例計算（推薦）
+# 🎯 Specify only width, height auto-calculated proportionally (recommended)
 ./resize-tool -w 1200 image.jpg
 
-# 🎯 只指定高度，寬度自動按比例計算（推薦）
+# 🎯 Specify only height, width auto-calculated proportionally (recommended)
 ./resize-tool --height 800 image.jpg
 
-# 指定具體尺寸（可能會變形）
+# Specify exact dimensions (may distort)
 ./resize-tool -w 1200 --height 800 image.jpg
 
-# 指定尺寸範圍但保持比例（縮放到框內）
+# Specify dimensions but maintain aspect ratio (fit within bounds)
 ./resize-tool -k -w 1200 --height 800 image.jpg
 ```
 
-### 進階選項
+### Advanced Options
 
 ```bash
-# 設定 JPEG 品質（1-100）
+# Set JPEG quality (1-100)
 ./resize-tool -q 85 -w 1000 image.jpg
 
-# 指定輸出目錄
+# Specify output directory
 ./resize-tool -w 800 -o ./resized/ image.jpg
 
-# 批次處理目錄中的所有圖片
+# Batch process all images in directory
 ./resize-tool -b -w 1200 /path/to/images/
 
-# 使用多執行緒進行批次處理
+# Use multiple threads for batch processing
 ./resize-tool -b --workers 8 -w 1920 /path/to/images/
 
-# 詳細輸出模式
+# Verbose output mode
 ./resize-tool -v -w 800 image.jpg
 
-# 組合多個選項
+# Combine multiple options
 ./resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 ```
 
-## 參數說明
+## Parameters
 
-| 參數           | 簡寫 | 預設值 | 說明                                     |
-| -------------- | ---- | ------ | ---------------------------------------- |
-| `--width`      | `-w` | 0      | 輸出寬度（像素，0=根據高度自動計算）     |
-| `--height`     |      | 0      | 輸出高度（像素，0=根據寬度自動計算）     |
-| `--quality`    | `-q` | 95     | JPEG 品質（1-100）                       |
-| `--output`     | `-o` | 原目錄 | 輸出目錄                                 |
-| `--keep-ratio` | `-k` | false  | 當同時指定寬高時保持長寬比例             |
-| `--batch`      | `-b` | false  | 批次處理目錄中的所有圖片                 |
-| `--workers`    |      | 4      | 批次處理時的並行執行緒數                 |
-| `--verbose`    | `-v` | false  | 顯示詳細輸出                             |
-| `--help`       | `-h` |        | 顯示幫助訊息                             |
+| Parameter      | Short | Default | Description                                               |
+| -------------- | ----- | ------- | --------------------------------------------------------- |
+| `--width`      | `-w`  | 0       | Output width (pixels, 0=auto-calculate based on height)  |
+| `--height`     |       | 0       | Output height (pixels, 0=auto-calculate based on width)  |
+| `--quality`    | `-q`  | 95      | JPEG quality (1-100)                                     |
+| `--output`     | `-o`  | same    | Output directory (default: same as input)                |
+| `--keep-ratio` | `-k`  | false   | Keep aspect ratio when both width and height specified   |
+| `--batch`      | `-b`  | false   | Batch process all images in directory                     |
+| `--workers`    |       | 4       | Number of parallel workers for batch processing          |
+| `--verbose`    | `-v`  | false   | Enable verbose output                                     |
+| `--help`       | `-h`  |         | Show help message                                         |
 
-## 輸出檔名格式
+## Output Filename Format
 
-調整後的檔案會自動加上尺寸資訊：
+Resized files will automatically include dimension information:
 
-- 原檔案：`photo.jpg`
-- 輸出檔案：`photo_800x600.jpg`
+- Original file: `photo.jpg`
+- Output file: `photo_800x600.jpg`
 
-## 範例
+## Examples
 
-### 1. 批次處理多張圖片
+### 1. Batch Process Multiple Images
 
 ```bash
-# 對當前目錄所有 jpg 檔案進行調整
+# Process all jpg files in current directory
 for img in *.jpg; do
     ./resize-tool -w 1200 --height 800 -k "$img"
 done
@@ -127,36 +127,36 @@ done
 ## 支援的圖片格式
 
 - **輸入格式**：JPEG, PNG, GIF, TIFF, BMP
-- **輸出格式**：與輸入格式相同
+- **Output formats**: Same as input format
 
-## 效能提示
+## Performance Tips
 
-- 使用 Lanczos 演算法進行高品質的圖片調整
-- 大檔案處理可能需要較多記憶體
-- JPEG 品質設定會影響檔案大小和圖片品質
+- Uses Lanczos algorithm for high-quality image resizing
+- Large file processing may require more memory
+- JPEG quality setting affects both file size and image quality
 
-## 錯誤處理
+## Error Handling
 
-工具會自動處理常見的錯誤情況：
+The tool automatically handles common error conditions:
 
-- 檔案不存在
-- 不支援的圖片格式
-- 輸出目錄建立失敗
-- 記憶體不足
+- File not found
+- Unsupported image formats
+- Output directory creation failure
+- Out of memory
 
-## 技術細節
+## Technical Details
 
-### 使用的套件
+### Libraries Used
 
-- `github.com/disintegration/imaging` - 圖片處理
-- `github.com/spf13/cobra` - CLI 介面
+- `github.com/disintegration/imaging` - Image processing
+- `github.com/spf13/cobra` - CLI interface
 
-### 圖片處理演算法
+### Image Processing Algorithms
 
-- **調整演算法**：Lanczos（高品質）
-- **保持比例**：使用 Fit 方法，圖片會縮放到指定尺寸內
-- **強制尺寸**：使用 Resize 方法，可能會改變長寬比
+- **Resize algorithm**: Lanczos (high quality)
+- **Aspect ratio preservation**: Uses Fit method, scales image to fit within specified dimensions
+- **Force dimensions**: Uses Resize method, may change aspect ratio
 
-## 授權
+## License
 
 MIT License
