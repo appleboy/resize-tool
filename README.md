@@ -4,6 +4,36 @@
 
 A simple yet powerful image resizing tool built with Go.
 
+## Table of Contents
+
+- [Go Image Resize Tool](#go-image-resize-tool)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Installation](#installation)
+    - [Install via Script](#install-via-script)
+      - [Script Customization](#script-customization)
+    - [Build from Source](#build-from-source)
+    - [Direct Usage](#direct-usage)
+  - [Usage](#usage)
+    - [Show Help](#show-help)
+    - [Basic Usage](#basic-usage)
+    - [CLI Advanced Usage](#cli-advanced-usage)
+  - [Parameters](#parameters)
+  - [Output Filename Format](#output-filename-format)
+  - [Examples](#examples)
+    - [1. Batch Process Multiple Images](#1-batch-process-multiple-images)
+    - [2. Website Image Optimization](#2-website-image-optimization)
+    - [3. Create Thumbnails](#3-create-thumbnails)
+    - [4. Other Useful Examples](#4-other-useful-examples)
+  - [Supported Image Formats](#supported-image-formats)
+  - [Build Instructions](#build-instructions)
+  - [Performance Tips](#performance-tips)
+  - [Error Handling](#error-handling)
+  - [Technical Details](#technical-details)
+    - [Libraries Used](#libraries-used)
+    - [Image Processing Algorithms](#image-processing-algorithms)
+  - [License](#license)
+
 ## Features
 
 - Support for multiple image formats: JPEG, PNG, GIF, TIFF, BMP
@@ -34,7 +64,7 @@ wget -qO- https://raw.githubusercontent.com/appleboy/resize-tool/main/install.sh
 
 By default, the binary will be installed to `~/.resize-tool/bin/resize-tool` and added to your shell PATH automatically.
 
-#### Advanced Options
+#### Script Customization
 
 You can customize the installation by setting environment variables:
 
@@ -94,7 +124,7 @@ resize-tool -w 1200 --height 800 image.jpg
 resize-tool -k -w 1200 --height 800 image.jpg
 ```
 
-### Advanced Options
+### CLI Advanced Usage
 
 ```bash
 # Set JPEG quality (1-100)
