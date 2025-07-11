@@ -13,20 +13,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Global variables for command-line flags and internal state
 var (
-	width     int
-	height    int
-	quality   int
-	outputDir string
-	keepRatio bool
-	batchMode bool
-	workers   int
-	verbose   bool
-	// Flag to track if dimensions were explicitly set
+	width     int    // Output image width in pixels
+	height    int    // Output image height in pixels
+	quality   int    // JPEG quality (1-100)
+	outputDir string // Output directory for resized images
+	keepRatio bool   // Whether to keep aspect ratio when both width and height are set
+	batchMode bool   // Whether to process all images in a directory
+	workers   int    // Number of worker goroutines for batch processing
+	verbose   bool   // Enable verbose output
+
+	// Flags to track if dimensions were explicitly set by the user
 	widthSet  bool
 	heightSet bool
 )
 
+// Entry point of the application
 func main() {
 	// Set up slog logger based on verbose flag
 	var handler slog.Handler
@@ -37,6 +40,7 @@ func main() {
 	}
 	slog.SetDefault(slog.New(handler))
 
+	// Define the root Cobra command for the CLI
 	rootCmd := &cobra.Command{
 		Use:   "resize-tool [image-file-or-directory]",
 		Short: "A powerful image resizing tool",
@@ -50,7 +54,7 @@ will be calculated automatically to maintain aspect ratio.`,
 		Run:  processImages,
 	}
 
-	// Use custom flag settings to track which parameters were explicitly set
+	// Register command-line flags and bind them to variables
 	rootCmd.Flags().IntVarP(&width, "width", "w", 0, "Output width (pixels, 0=auto based on height)")
 	rootCmd.Flags().IntVarP(&height, "height", "", 0, "Output height (pixels, 0=auto based on width)")
 	rootCmd.Flags().IntVarP(&quality, "quality", "q", 95, "JPEG quality (1-100)")
@@ -60,13 +64,13 @@ will be calculated automatically to maintain aspect ratio.`,
 	rootCmd.Flags().IntVarP(&workers, "workers", "", 4, "Number of worker goroutines for batch processing")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
 
-	// Set default values and check parameters
+	// PreRun: Validate and set up parameters before running the main command
 	rootCmd.PreRun = func(cmd *cobra.Command, args []string) {
-		// Check if dimensions were explicitly set
+		// Check if dimensions were explicitly set by the user
 		widthSet = cmd.Flags().Changed("width")
 		heightSet = cmd.Flags().Changed("height")
 
-		// If neither is set, use default values
+		// If neither width nor height is set, use default values
 		if !widthSet && !heightSet {
 			width = 800
 			height = 600
@@ -74,7 +78,7 @@ will be calculated automatically to maintain aspect ratio.`,
 			heightSet = true
 		}
 
-		// Validate parameters
+		// Validate input parameters
 		if width < 0 || height < 0 {
 			slog.Error("Width and height must be positive numbers")
 			os.Exit(1)
@@ -89,16 +93,22 @@ will be calculated automatically to maintain aspect ratio.`,
 		}
 	}
 
+	// Execute the root command
 	if err := rootCmd.Execute(); err != nil {
 		slog.Error("Failed to execute command", "err", err)
 		os.Exit(1)
 	}
 }
 
+/*
+processImages determines whether the input path is a file or directory,
+and processes it accordingly. If batch mode is enabled or the input is a directory,
+it processes all images in the directory. Otherwise, it processes a single image file.
+*/
 func processImages(cmd *cobra.Command, args []string) {
 	inputPath := args[0]
 
-	// Check input path
+	// Check if the input path exists
 	info, err := os.Stat(inputPath)
 	if os.IsNotExist(err) {
 		slog.Error(fmt.Sprintf("Path does not exist: %s", inputPath))
@@ -106,10 +116,10 @@ func processImages(cmd *cobra.Command, args []string) {
 	}
 
 	if info.IsDir() || batchMode {
-		// Directory processing
+		// Process all images in the directory
 		processBatch(inputPath)
 	} else {
-		// Single file processing
+		// Process a single image file
 		if err := resizeImage(inputPath); err != nil {
 			slog.Error(fmt.Sprintf("Failed to process image: %v", err))
 			os.Exit(1)
@@ -117,13 +127,17 @@ func processImages(cmd *cobra.Command, args []string) {
 	}
 }
 
+/*
+processBatch processes all supported image files in the specified directory using a worker pool.
+It collects image files, distributes them to worker goroutines, and prints a summary of results.
+*/
 func processBatch(dirPath string) {
 	if verbose {
 		fmt.Printf("Processing directory: %s\n", dirPath)
 		fmt.Printf("Using %d workers\n", workers)
 	}
 
-	// Collect all image files
+	// Collect all image files in the directory
 	imageFiles, err := collectImageFiles(dirPath)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Failed to collect image files: %v", err))
@@ -137,11 +151,11 @@ func processBatch(dirPath string) {
 
 	fmt.Printf("Found %d image files\n", len(imageFiles))
 
-	// 使用 worker pool 進行並行處理
+	// Create channels for jobs and results for the worker pool
 	jobs := make(chan string, len(imageFiles))
 	results := make(chan error, len(imageFiles))
 
-	// 啟動 workers
+	// Start worker goroutines to process images concurrently
 	var wg sync.WaitGroup
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
@@ -154,7 +168,7 @@ func processBatch(dirPath string) {
 		}()
 	}
 
-	// Send jobs
+	// Send image file paths to the jobs channel
 	go func() {
 		defer close(jobs)
 		for _, filePath := range imageFiles {
@@ -162,13 +176,13 @@ func processBatch(dirPath string) {
 		}
 	}()
 
-	// Wait for completion and collect results
+	// Close the results channel after all workers are done
 	go func() {
 		wg.Wait()
 		close(results)
 	}()
 
-	// Collect statistics
+	// Collect and count results from workers
 	successCount := 0
 	errorCount := 0
 	for err := range results {
@@ -185,6 +199,10 @@ func processBatch(dirPath string) {
 	fmt.Printf("Batch processing completed: %d success, %d errors\n", successCount, errorCount)
 }
 
+/*
+collectImageFiles recursively collects all supported image files from the given directory.
+Returns a slice of file paths and any error encountered.
+*/
 func collectImageFiles(dirPath string) ([]string, error) {
 	var imageFiles []string
 	supportedExts := map[string]bool{
@@ -197,6 +215,7 @@ func collectImageFiles(dirPath string) ([]string, error) {
 		".bmp":  true,
 	}
 
+	// Walk through the directory and collect files with supported extensions
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -215,12 +234,16 @@ func collectImageFiles(dirPath string) ([]string, error) {
 	return imageFiles, err
 }
 
+/*
+resizeImage resizes a single image file according to the specified parameters.
+It preserves aspect ratio if required, saves the output, and prints information if verbose is enabled.
+*/
 func resizeImage(inputPath string) error {
 	if verbose {
 		fmt.Printf("Processing: %s\n", inputPath)
 	}
 
-	// Open and decode image
+	// Open and decode the input image file
 	src, err := imaging.Open(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to open image %s: %v", inputPath, err)
@@ -235,7 +258,7 @@ func resizeImage(inputPath string) error {
 		fmt.Printf("  Original size: %dx%d\n", originalWidth, originalHeight)
 	}
 
-	// Calculate target dimensions
+	// Calculate target dimensions based on flags and original size
 	targetWidth, targetHeight := calculateTargetSize(originalWidth, originalHeight)
 
 	if verbose {
@@ -244,30 +267,30 @@ func resizeImage(inputPath string) error {
 
 	var resized image.Image
 
-	// Determine resize method
+	// Choose resizing method based on flags
 	if (widthSet && heightSet && keepRatio) || (!widthSet && heightSet) || (widthSet && !heightSet) {
 		// Keep aspect ratio
 		if widthSet && !heightSet {
-			// Only width set, height auto-calculated
+			// Only width set, height is auto-calculated
 			resized = imaging.Resize(src, targetWidth, 0, imaging.Lanczos)
 		} else if !widthSet && heightSet {
-			// Only height set, width auto-calculated
+			// Only height set, width is auto-calculated
 			resized = imaging.Resize(src, 0, targetHeight, imaging.Lanczos)
 		} else {
 			// Both set, but keep ratio (fit within bounds)
 			resized = imaging.Fit(src, targetWidth, targetHeight, imaging.Lanczos)
 		}
 	} else {
-		// Force resize to exact dimensions (may distort)
+		// Force resize to exact dimensions (may distort aspect ratio)
 		resized = imaging.Resize(src, targetWidth, targetHeight, imaging.Lanczos)
 	}
 
-	// Get actual resized dimensions (for filename)
+	// Get actual resized dimensions (used for output filename)
 	actualBounds := resized.Bounds()
 	actualWidth := actualBounds.Max.X
 	actualHeight := actualBounds.Max.Y
 
-	// Determine output path
+	// Generate output file path
 	outputPath := generateOutputPath(inputPath, outputDir, actualWidth, actualHeight)
 
 	// Ensure output directory exists
@@ -275,7 +298,7 @@ func resizeImage(inputPath string) error {
 		return fmt.Errorf("failed to create output directory: %v", err)
 	}
 
-	// Save resized image
+	// Save the resized image in the appropriate format
 	var saveErr error
 	ext := strings.ToLower(filepath.Ext(inputPath))
 
@@ -298,13 +321,13 @@ func resizeImage(inputPath string) error {
 		return fmt.Errorf("failed to save image: %v", saveErr)
 	}
 
-	// Display result information
+	// Print result information if verbose or not in batch mode
 	if verbose || !batchMode {
 		fmt.Printf("Resized %s: %dx%d -> %dx%d\n",
 			filepath.Base(inputPath), originalWidth, originalHeight, actualWidth, actualHeight)
 		fmt.Printf("Output: %s\n", outputPath)
 
-		// Display file size information
+		// Print file size information
 		originalInfo, _ := os.Stat(inputPath)
 		newInfo, _ := os.Stat(outputPath)
 
@@ -315,6 +338,10 @@ func resizeImage(inputPath string) error {
 	return nil
 }
 
+/*
+calculateTargetSize computes the target width and height for resizing,
+preserving aspect ratio if only one dimension is set.
+*/
 func calculateTargetSize(originalWidth, originalHeight int) (int, int) {
 	// If both dimensions are explicitly set, use them directly
 	if widthSet && heightSet {
@@ -339,6 +366,10 @@ func calculateTargetSize(originalWidth, originalHeight int) (int, int) {
 	return width, height
 }
 
+/*
+generateOutputPath creates the output file path for the resized image,
+including the new dimensions in the filename and using the specified output directory if provided.
+*/
 func generateOutputPath(inputPath, outputDir string, width, height int) string {
 	dir := filepath.Dir(inputPath)
 	if outputDir != "" {
@@ -353,6 +384,9 @@ func generateOutputPath(inputPath, outputDir string, width, height int) string {
 	return filepath.Join(dir, newFilename)
 }
 
+/*
+formatFileSize returns a human-readable string for a file size in bytes (e.g., "1.2 MB").
+*/
 func formatFileSize(bytes int64) string {
 	const unit = 1024
 	if bytes < unit {
