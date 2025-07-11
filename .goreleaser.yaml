@@ -10,62 +10,13 @@ builds:
       - darwin
       - linux
       - windows
-      - freebsd
     goarch:
       - amd64
-      - arm
       - arm64
-    goarm:
-      - "5"
-      - "6"
-      - "7"
-    ignore:
-      - goos: darwin
-        goarch: arm
-      - goos: darwin
-        goarch: ppc64le
-      - goos: darwin
-        goarch: s390x
-      - goos: windows
-        goarch: ppc64le
-      - goos: windows
-        goarch: s390x
-      - goos: windows
-        goarch: arm
-        goarm: "5"
-      - goos: windows
-        goarch: arm
-        goarm: "6"
-      - goos: windows
-        goarch: arm
-        goarm: "7"
-      - goos: windows
-        goarch: arm64
-      - goos: freebsd
-        goarch: ppc64le
-      - goos: freebsd
-        goarch: s390x
-      - goos: freebsd
-        goarch: arm
-        goarm: "5"
-      - goos: freebsd
-        goarch: arm
-        goarm: "6"
-      - goos: freebsd
-        goarch: arm
-        goarm: "7"
-      - goos: freebsd
-        goarch: arm64
     flags:
       - -trimpath
     ldflags:
       - -s -w
-      - -X 'github.com/appleboy/CodeGPT/version.Version={{.Version}}'
-      - -X 'github.com/appleboy/CodeGPT/version.BuildTime={{.Date}}'
-      - -X 'github.com/appleboy/CodeGPT/version.GitCommit={{.FullCommit}}'
-      - -X 'github.com/appleboy/CodeGPT/version.GoVersion={{.Env.GO_VERSION}}'
-      - -X 'github.com/appleboy/CodeGPT/version.BuildOS={{.Os}}'
-      - -X 'github.com/appleboy/CodeGPT/version.BuildArch={{.Arch}}'
     binary: >-
       {{ .ProjectName }}-
       {{- if .IsSnapshot }}{{ .Branch }}-
@@ -81,7 +32,7 @@ builds:
       post:
         - cmd: xz -k -9 {{ .Path }}
           dir: ./dist/
-    main: ./cmd/codegpt
+    main: .
 
 archives:
   - formats: ["binary"]
