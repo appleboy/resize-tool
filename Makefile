@@ -1,47 +1,38 @@
 # Go Image Resize Tool Makefile
 
-# Variable definitions
 BINARY_NAME=resize-tool
 MAIN_PACKAGE=.
 BUILD_DIR=build
 
-# Default target
-all: build
+all: build        ## Build the application
 
-# Build the application
-build:
+build:            ## Build the application
 	@echo "Building $(BINARY_NAME)..."
 	go build -o $(BINARY_NAME) $(MAIN_PACKAGE)
 
-# Build and output to build directory
-build-dir:
+build-dir:        ## Build and output to build directory
 	@echo "Building $(BINARY_NAME) to $(BUILD_DIR) directory..."
 	@mkdir -p $(BUILD_DIR)
 	go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PACKAGE)
 
-# Install dependencies
-deps:
+deps:             ## Install dependencies
 	@echo "Installing dependencies..."
 	go mod tidy
 	go mod download
 
-# Run tests
-test:
+test:             ## Run tests
 	@echo "Running tests..."
 	go test -v ./...
 
-# Clean build files
-clean:
+clean:            ## Clean build files
 	@echo "Cleaning build files..."
 	rm -f $(BINARY_NAME)
 	rm -rf $(BUILD_DIR)
 
-# Run the program (requires an image file argument)
-run:
+run:              ## Show usage instructions (requires an image file argument)
 	@echo "Please specify an image file: make run-example"
 
-# Run example (if example image exists)
-run-example:
+run-example:      ## Run example (if example image exists)
 	@if [ -f "example.jpg" ]; then \
 		./$(BINARY_NAME) example.jpg; \
 	else \
@@ -50,36 +41,21 @@ run-example:
 		./$(BINARY_NAME) --help; \
 	fi
 
-# Build release versions (cross-platform compilation)
-release:
+release:          ## Build release versions (cross-platform compilation)
 	@echo "Building release versions..."
 	@mkdir -p $(BUILD_DIR)
-	
 	# Linux amd64
 	GOOS=linux GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 $(MAIN_PACKAGE)
-	
 	# Windows amd64
 	GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe $(MAIN_PACKAGE)
-	
 	# macOS amd64
 	GOOS=darwin GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 $(MAIN_PACKAGE)
-	
 	# macOS arm64 (Apple Silicon)
 	GOOS=darwin GOARCH=arm64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 $(MAIN_PACKAGE)
-	
 	@echo "Release builds completed in $(BUILD_DIR)/"
 
-# Show help
-help:
+help:             ## Print this help message.
 	@echo "Available targets:"
-	@echo "  build      - Build the application"
-	@echo "  build-dir  - Build to build/ directory"
-	@echo "  deps       - Install dependencies"
-	@echo "  test       - Run tests"
-	@echo "  clean      - Clean build files"
-	@echo "  run        - Show usage instructions"
-	@echo "  release    - Build for multiple platforms"
-	@echo "  help       - Show this help"
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-# Define phony targets
 .PHONY: all build build-dir deps test clean run run-example release help
