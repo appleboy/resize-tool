@@ -35,6 +35,12 @@ If you have the compiled binary, you can use it directly:
 
 ## Usage
 
+### Show Help
+
+```bash
+./resize-tool --help
+```
+
 ### Basic Usage
 
 ```bash
@@ -64,10 +70,10 @@ If you have the compiled binary, you can use it directly:
 ./resize-tool -w 800 -o ./resized/ image.jpg
 
 # Batch process all images in directory
-./resize-tool -b -w 1200 /path/to/images/
+./resize-tool -b -w 1200 /path/to/image/directory
 
 # Use multiple threads for batch processing
-./resize-tool -b --workers 8 -w 1920 /path/to/images/
+./resize-tool -b --workers 8 -w 1920 /path/to/image/directory
 
 # Verbose output mode
 ./resize-tool -v -w 800 image.jpg
@@ -78,17 +84,17 @@ If you have the compiled binary, you can use it directly:
 
 ## Parameters
 
-| Parameter      | Short | Default | Description                                               |
-| -------------- | ----- | ------- | --------------------------------------------------------- |
-| `--width`      | `-w`  | 0       | Output width (pixels, 0=auto-calculate based on height)  |
-| `--height`     |       | 0       | Output height (pixels, 0=auto-calculate based on width)  |
-| `--quality`    | `-q`  | 95      | JPEG quality (1-100)                                     |
-| `--output`     | `-o`  | same    | Output directory (default: same as input)                |
-| `--keep-ratio` | `-k`  | false   | Keep aspect ratio when both width and height specified   |
-| `--batch`      | `-b`  | false   | Batch process all images in directory                     |
-| `--workers`    |       | 4       | Number of parallel workers for batch processing          |
-| `--verbose`    | `-v`  | false   | Enable verbose output                                     |
-| `--help`       | `-h`  |         | Show help message                                         |
+| Parameter      | Short | Default | Description                                             |
+| -------------- | ----- | ------- | ------------------------------------------------------- |
+| `--width`      | `-w`  | 0       | Output width (pixels, 0=auto-calculate based on height) |
+| `--height`     |       | 0       | Output height (pixels, 0=auto-calculate based on width) |
+| `--quality`    | `-q`  | 95      | JPEG quality (1-100)                                    |
+| `--output`     | `-o`  | same    | Output directory (default: same as input)               |
+| `--keep-ratio` | `-k`  | false   | Keep aspect ratio when both width and height specified  |
+| `--batch`      | `-b`  | false   | Batch process all images in directory                   |
+| `--workers`    |       | 4       | Number of parallel workers for batch processing         |
+| `--verbose`    | `-v`  | false   | Enable verbose output                                   |
+| `--help`       | `-h`  |         | Show help message                                       |
 
 ## Output Filename Format
 
@@ -104,30 +110,88 @@ Resized files will automatically include dimension information:
 ```bash
 # Process all jpg files in current directory
 for img in *.jpg; do
-    ./resize-tool -w 1200 --height 800 -k "$img"
+    ./resize-tool -w 1200 "$img"
 done
 ```
 
-### 2. 為網站最佳化圖片
-
 ```bash
-# 建立三種不同尺寸
-./resize-tool -w 1920 --height 1080 -q 85 -o ./large/ image.jpg
-./resize-tool -w 1200 --height 800 -q 85 -o ./medium/ image.jpg
-./resize-tool -w 600 --height 400 -q 80 -o ./small/ image.jpg
+# Process all png files in current directory (height only)
+for img in *.png; do
+    ./resize-tool --height 800 "$img"
+done
 ```
 
-### 3. 保持比例的縮圖
+### 2. Website Image Optimization
 
 ```bash
-# 建立不超過 300x300 的縮圖，保持原比例
+# Create three different sizes (smart aspect ratio)
+./resize-tool -w 1920 -q 85 -o ./large/ image.jpg
+./resize-tool -w 1200 -q 85 -o ./medium/ image.jpg
+./resize-tool -w 600 -q 80 -o ./small/ image.jpg
+```
+
+### 3. Create Thumbnails
+
+```bash
+# Create square thumbnails (fixed size, may crop)
+./resize-tool -w 300 --height 300 -o ./thumbnails/ image.jpg
+
+# Create thumbnails (keep aspect ratio, max 300x300)
 ./resize-tool -w 300 --height 300 -k -o ./thumbnails/ image.jpg
 ```
 
-## 支援的圖片格式
+### 4. Other Useful Examples
 
-- **輸入格式**：JPEG, PNG, GIF, TIFF, BMP
+```bash
+# Specify only width, height auto-calculated
+./resize-tool -w 1200 image.jpg
+
+# Specify only height, width auto-calculated
+./resize-tool --height 800 image.jpg
+
+# Specify both width and height (may distort)
+./resize-tool -w 1200 --height 800 image.jpg
+
+# Specify both width and height, keep aspect ratio (fit within bounds)
+./resize-tool -k -w 1200 --height 800 image.jpg
+
+# Set JPEG quality
+./resize-tool -q 85 -w 1000 image.jpg
+
+# Specify output directory
+./resize-tool -w 800 -o ./resized/ image.jpg
+
+# Batch process all images in directory
+./resize-tool -b -w 1200 /path/to/image/directory
+
+# Batch process with multiple threads
+./resize-tool -b --workers 8 -w 1920 /path/to/image/directory
+
+# Verbose output mode
+./resize-tool -v -w 800 image.jpg
+
+# Combine multiple options
+./resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
+```
+
+## Supported Image Formats
+
+- **Input formats**: JPEG, PNG, GIF, TIFF, BMP
 - **Output formats**: Same as input format
+
+## Build Instructions
+
+To build the tool from source:
+
+```bash
+go build -o resize-tool .
+```
+
+For cross-compiling (multi-platform builds):
+
+```bash
+make release  # Build for multiple platforms
+```
 
 ## Performance Tips
 
