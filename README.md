@@ -30,7 +30,7 @@ go build -o resize-tool .
 If you have the compiled binary, you can use it directly:
 
 ```bash
-./resize-tool [options] <image-file>
+resize-tool [options] <image-file>
 ```
 
 ## Usage
@@ -38,48 +38,48 @@ If you have the compiled binary, you can use it directly:
 ### Show Help
 
 ```bash
-./resize-tool --help
+resize-tool --help
 ```
 
 ### Basic Usage
 
 ```bash
 # Default resize to 800x600 pixels
-./resize-tool image.jpg
+resize-tool image.jpg
 
 # 🎯 Specify only width, height auto-calculated proportionally (recommended)
-./resize-tool -w 1200 image.jpg
+resize-tool -w 1200 image.jpg
 
 # 🎯 Specify only height, width auto-calculated proportionally (recommended)
-./resize-tool --height 800 image.jpg
+resize-tool --height 800 image.jpg
 
 # Specify exact dimensions (may distort)
-./resize-tool -w 1200 --height 800 image.jpg
+resize-tool -w 1200 --height 800 image.jpg
 
 # Specify dimensions but maintain aspect ratio (fit within bounds)
-./resize-tool -k -w 1200 --height 800 image.jpg
+resize-tool -k -w 1200 --height 800 image.jpg
 ```
 
 ### Advanced Options
 
 ```bash
 # Set JPEG quality (1-100)
-./resize-tool -q 85 -w 1000 image.jpg
+resize-tool -q 85 -w 1000 image.jpg
 
 # Specify output directory
-./resize-tool -w 800 -o ./resized/ image.jpg
+resize-tool -w 800 -o ./resized/ image.jpg
 
 # Batch process all images in directory
-./resize-tool -b -w 1200 /path/to/image/directory
+resize-tool -b -w 1200 /path/to/image/directory
 
 # Use multiple threads for batch processing
-./resize-tool -b --workers 8 -w 1920 /path/to/image/directory
+resize-tool -b --workers 8 -w 1920 /path/to/image/directory
 
 # Verbose output mode
-./resize-tool -v -w 800 image.jpg
+resize-tool -v -w 800 image.jpg
 
 # Combine multiple options
-./resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
+resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 ```
 
 ## Parameters

@@ -49,7 +49,13 @@ Supports JPEG, PNG, GIF, TIFF, and BMP formats.
 Can process single files or batch process directories.
 
 By default, if only width or height is specified, the other dimension
-will be calculated automatically to maintain aspect ratio.`,
+will be calculated automatically to maintain aspect ratio.
+
+Example usage:
+		resize-tool input.jpg --width 800
+		resize-tool input.jpg --height 600
+		resize-tool images/ --batch --width 1024 --output resized/
+`,
 		Args: cobra.ExactArgs(1),
 		Run:  processImages,
 	}
