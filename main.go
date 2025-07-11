@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,6 +28,15 @@ var (
 )
 
 func main() {
+	// Set up slog logger based on verbose flag
+	var handler slog.Handler
+	if verbose {
+		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})
+	} else {
+		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})
+	}
+	slog.SetDefault(slog.New(handler))
+
 	rootCmd := &cobra.Command{
 		Use:   "resize-tool [image-file-or-directory]",
 		Short: "A powerful image resizing tool",
@@ -67,18 +76,22 @@ will be calculated automatically to maintain aspect ratio.`,
 
 		// Validate parameters
 		if width < 0 || height < 0 {
-			log.Fatal("Width and height must be positive numbers")
+			slog.Error("Width and height must be positive numbers")
+			os.Exit(1)
 		}
 		if width == 0 && height == 0 {
-			log.Fatal("At least one of width or height must be specified")
+			slog.Error("At least one of width or height must be specified")
+			os.Exit(1)
 		}
 		if quality < 1 || quality > 100 {
-			log.Fatal("Quality must be between 1 and 100")
+			slog.Error("Quality must be between 1 and 100")
+			os.Exit(1)
 		}
 	}
 
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		slog.Error("Failed to execute command", "err", err)
+		os.Exit(1)
 	}
 }
 
@@ -88,7 +101,8 @@ func processImages(cmd *cobra.Command, args []string) {
 	// Check input path
 	info, err := os.Stat(inputPath)
 	if os.IsNotExist(err) {
-		log.Fatalf("Path does not exist: %s", inputPath)
+		slog.Error(fmt.Sprintf("Path does not exist: %s", inputPath))
+		os.Exit(1)
 	}
 
 	if info.IsDir() || batchMode {
@@ -97,7 +111,8 @@ func processImages(cmd *cobra.Command, args []string) {
 	} else {
 		// Single file processing
 		if err := resizeImage(inputPath); err != nil {
-			log.Fatalf("Failed to process image: %v", err)
+			slog.Error(fmt.Sprintf("Failed to process image: %v", err))
+			os.Exit(1)
 		}
 	}
 }
@@ -111,7 +126,8 @@ func processBatch(dirPath string) {
 	// Collect all image files
 	imageFiles, err := collectImageFiles(dirPath)
 	if err != nil {
-		log.Fatalf("Failed to collect image files: %v", err)
+		slog.Error(fmt.Sprintf("Failed to collect image files: %v", err))
+		os.Exit(1)
 	}
 
 	if len(imageFiles) == 0 {
