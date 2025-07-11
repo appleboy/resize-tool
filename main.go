@@ -276,13 +276,14 @@ func resizeImage(inputPath string) error {
 	// Choose resizing method based on flags
 	if (widthSet && heightSet && keepRatio) || (!widthSet && heightSet) || (widthSet && !heightSet) {
 		// Keep aspect ratio
-		if widthSet && !heightSet {
+		switch {
+		case widthSet && !heightSet:
 			// Only width set, height is auto-calculated
 			resized = imaging.Resize(src, targetWidth, 0, imaging.Lanczos)
-		} else if !widthSet && heightSet {
+		case !widthSet && heightSet:
 			// Only height set, width is auto-calculated
 			resized = imaging.Resize(src, 0, targetHeight, imaging.Lanczos)
-		} else {
+		default:
 			// Both set, but keep ratio (fit within bounds)
 			resized = imaging.Fit(src, targetWidth, targetHeight, imaging.Lanczos)
 		}
