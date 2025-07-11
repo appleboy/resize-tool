@@ -61,12 +61,6 @@ function download_and_install() {
   mv "${TARGET}" "${INSTALL_DIR}/resize-tool" || log_error "Failed to rename ${TARGET} to ${INSTALL_DIR}/resize-tool" 8
   # show the version
   print_message info "Installed ${ORANGE}${CLIENT_BINARY}${NC} to ${GREEN}${INSTALL_DIR}${NC}"
-  print_message info "Run ${ORANGE}resize-tool version${NC} to show the version"
-  print_message info ""
-  print_message info "==============================="
-  "${INSTALL_DIR}/resize-tool" version
-  print_message info "==============================="
-  print_message info ""
   print_message info "✅ Installation completed successfully!"
 }
 

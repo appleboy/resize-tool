@@ -18,6 +18,38 @@ A simple yet powerful image resizing tool built with Go.
 
 ## Installation
 
+### Install via Script
+
+You can install the latest prebuilt binary for your platform using the provided install script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/appleboy/resize-tool/main/install.sh | bash
+```
+
+Or with wget:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/appleboy/resize-tool/main/install.sh | bash
+```
+
+By default, the binary will be installed to `~/.resize-tool/bin/resize-tool` and added to your shell PATH automatically.
+
+#### Advanced Options
+
+You can customize the installation by setting environment variables:
+
+- `VERSION`: Install a specific version (default: latest release)
+- `INSTALL_DIR`: Change the install directory (default: `~/.resize-tool/bin`)
+- `CURL_INSECURE=true`: Allow insecure SSL download (not recommended)
+
+Example:
+
+```bash
+INSTALL_DIR="$HOME/bin" VERSION="1.2.3" bash <(curl -fsSL https://raw.githubusercontent.com/appleboy/resize-tool/main/install.sh)
+```
+
+After installation, restart your terminal or run `source ~/.bashrc` (or your shell config) to update your PATH.
+
 ### Build from Source
 
 ```bash
