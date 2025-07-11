@@ -1,5 +1,7 @@
 # Go Image Resize Tool
 
+[![Lint and Testing](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml)
+
 A simple yet powerful image resizing tool built with Go.
 
 ## Features
