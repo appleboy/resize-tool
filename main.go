@@ -13,6 +13,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is set at compile time
+var Version = "dev"
+
 // Global variables for command-line flags and internal state
 var (
 	width     int    // Output image width in pixels
@@ -42,8 +45,9 @@ func main() {
 
 	// Define the root Cobra command for the CLI
 	rootCmd := &cobra.Command{
-		Use:   "resize-tool [image-file-or-directory]",
-		Short: "A powerful image resizing tool",
+		Use:     "resize-tool [image-file-or-directory]",
+		Short:   "A powerful image resizing tool",
+		Version: Version,
 		Long: `A command-line tool to resize images with various options.
 Supports JPEG, PNG, GIF, TIFF, and BMP formats.
 Can process single files or batch process directories.
@@ -59,6 +63,8 @@ Example usage:
 		Args: cobra.ExactArgs(1),
 		Run:  processImages,
 	}
+
+	rootCmd.SetVersionTemplate(`{{printf "%s\n" .Version}}`)
 
 	// Register command-line flags and bind them to variables
 	rootCmd.Flags().IntVarP(&width, "width", "w", 0, "Output width (pixels, 0=auto based on height)")
