@@ -14,7 +14,12 @@ import (
 )
 
 // version is set at compile time
-var version = "dev"
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+	builtBy = "unknown"
+)
 
 // Global variables for command-line flags and internal state
 var (
@@ -32,23 +37,11 @@ var (
 	heightSet bool
 )
 
-// Entry point of the application
-func main() {
-	// Set up slog logger based on verbose flag
-	var handler slog.Handler
-	if verbose {
-		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})
-	} else {
-		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})
-	}
-	slog.SetDefault(slog.New(handler))
-
-	// Define the root Cobra command for the CLI
-	rootCmd := &cobra.Command{
-		Use:     "resize-tool [image-file-or-directory]",
-		Short:   "A powerful image resizing tool",
-		Version: version,
-		Long: `A command-line tool to resize images with various options.
+var rootCmd = &cobra.Command{
+	Use:     "resize-tool [image-file-or-directory]",
+	Short:   "A powerful image resizing tool",
+	Version: version,
+	Long: `A command-line tool to resize images with various options.
 Supports JPEG, PNG, GIF, TIFF, and BMP formats.
 Can process single files or batch process directories.
 
@@ -60,11 +53,41 @@ Example usage:
 		resize-tool input.jpg --height 600
 		resize-tool images/ --batch --width 1024 --output resized/
 `,
-		Args: cobra.ExactArgs(1),
-		Run:  processImages,
-	}
+	Args: cobra.ExactArgs(1),
+	Run:  processImages,
+}
 
-	rootCmd.SetVersionTemplate(`{{printf "%s\n" .Version}}`)
+// Entry point of the application
+func main() {
+	// Execute the root command
+	if err := rootCmd.Execute(); err != nil {
+		slog.Error("Failed to execute command", "err", err)
+		os.Exit(1)
+	}
+}
+
+func init() {
+	// Set up slog logger based on verbose flag
+	var handler slog.Handler
+	if verbose {
+		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})
+	} else {
+		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})
+	}
+	slog.SetDefault(slog.New(handler))
+
+	// Custom version command
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Print the version number of resize-tool",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("resize-tool version %s\n", version)
+			fmt.Printf("commit: %s\n", commit)
+			fmt.Printf("date: %s\n", date)
+			fmt.Printf("built by: %s\n", builtBy)
+		},
+	}
+	rootCmd.AddCommand(versionCmd)
 
 	// Register command-line flags and bind them to variables
 	rootCmd.Flags().IntVarP(&width, "width", "w", 0, "Output width (pixels, 0=auto based on height)")
@@ -103,12 +126,6 @@ Example usage:
 			slog.Error("Quality must be between 1 and 100")
 			os.Exit(1)
 		}
-	}
-
-	// Execute the root command
-	if err := rootCmd.Execute(); err != nil {
-		slog.Error("Failed to execute command", "err", err)
-		os.Exit(1)
 	}
 }
 
