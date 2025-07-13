@@ -9,12 +9,12 @@ all: build        ## Build the application
 
 build:            ## Build the application
 	@echo "Building $(BINARY_NAME)..."
-	go build -ldflags "-X main.Version=$(VERSION)" -o $(BINARY_NAME) $(MAIN_PACKAGE)
+	go build -ldflags "-X main.version=$(VERSION)" -o $(BINARY_NAME) $(MAIN_PACKAGE)
 
 build-dir:        ## Build and output to build directory
 	@echo "Building $(BINARY_NAME) to $(BUILD_DIR) directory..."
 	@mkdir -p $(BUILD_DIR)
-	go build -ldflags "-X main.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PACKAGE)
+	go build -ldflags "-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PACKAGE)
 
 deps:             ## Install dependencies
 	@echo "Installing dependencies..."
@@ -46,13 +46,13 @@ release:          ## Build release versions (cross-platform compilation)
 	@echo "Building release versions..."
 	@mkdir -p $(BUILD_DIR)
 	# Linux amd64
-	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 $(MAIN_PACKAGE)
+	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 $(MAIN_PACKAGE)
 	# Windows amd64
-	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe $(MAIN_PACKAGE)
+	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe $(MAIN_PACKAGE)
 	# macOS amd64
-	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 $(MAIN_PACKAGE)
+	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 $(MAIN_PACKAGE)
 	# macOS arm64 (Apple Silicon)
-	GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 $(MAIN_PACKAGE)
+	GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 $(MAIN_PACKAGE)
 	@echo "Release builds completed in $(BUILD_DIR)/"
 
 help:             ## Print this help message.

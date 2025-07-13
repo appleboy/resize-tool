@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Version is set at compile time
-var Version = "dev"
+// version is set at compile time
+var version = "dev"
 
 // Global variables for command-line flags and internal state
 var (
@@ -47,7 +47,7 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:     "resize-tool [image-file-or-directory]",
 		Short:   "A powerful image resizing tool",
-		Version: Version,
+		Version: version,
 		Long: `A command-line tool to resize images with various options.
 Supports JPEG, PNG, GIF, TIFF, and BMP formats.
 Can process single files or batch process directories.
