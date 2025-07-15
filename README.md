@@ -1,5 +1,7 @@
 # Go Image Resize Tool
 
+[English](./README.md) | [繁體中文](./README.zh-tw.md) | [简体中文](./README.zh-cn.md)
+
 [![Lint and Testing](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml)
 
 A simple yet powerful image resizing tool built with Go.
