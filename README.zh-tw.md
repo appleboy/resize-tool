@@ -135,8 +135,14 @@ resize-tool -q 85 -w 1000 image.jpg
 # 指定輸出目錄
 resize-tool -w 800 -o ./resized/ image.jpg
 
+# 覆蓋原始檔案（不產生帶尺寸的新檔名）
+resize-tool -w 800 --overwrite image.jpg
+
 # 批次處理目錄下所有圖片
 resize-tool -b -w 1200 /path/to/image/directory
+
+# 批次處理並覆蓋原始檔案
+resize-tool -b -w 1200 --overwrite /path/to/image/directory
 
 # 批次處理時使用多執行緒
 resize-tool -b --workers 8 -w 1920 /path/to/image/directory
@@ -160,6 +166,7 @@ resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 | `--batch`      | `-b`   | false  | 批次處理目錄下所有圖片             |
 | `--workers`    |        | 4      | 批次處理時的平行執行緒數量         |
 | `--verbose`    | `-v`   | false  | 啟用詳細輸出                       |
+| `--overwrite`  |        | false  | 覆蓋原始檔案，不建立新檔案         |
 | `--help`       | `-h`   |        | 顯示說明                           |
 
 ## 輸出檔名格式
@@ -168,6 +175,8 @@ resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 
 - 原始檔案：`photo.jpg`
 - 輸出檔案：`photo_800x600.jpg`
+
+**注意**：使用 `--overwrite` 時，會直接替換原始檔案，不會加上尺寸後綴。
 
 ## 範例
 
@@ -227,8 +236,14 @@ done
 # 指定輸出目錄
 ./resize-tool -w 800 -o ./resized/ image.jpg
 
+# 覆蓋原始檔案（直接替換）
+./resize-tool -w 800 --overwrite image.jpg
+
 # 批次處理目錄下所有圖片
 ./resize-tool -b -w 1200 /path/to/image/directory
+
+# 批次處理並覆蓋原始檔案
+./resize-tool -b -w 1200 --overwrite /path/to/image/directory
 
 # 批次處理並使用多執行緒
 ./resize-tool -b --workers 8 -w 1920 /path/to/image/directory
@@ -236,7 +251,7 @@ done
 # 詳細輸出模式
 ./resize-tool -v -w 800 image.jpg
 
-# 組合多個選項
+# 組合多個選項（注意：--overwrite 不能與 --output 同時使用）
 ./resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 ```
 

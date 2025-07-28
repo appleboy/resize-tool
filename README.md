@@ -135,8 +135,14 @@ resize-tool -q 85 -w 1000 image.jpg
 # Specify output directory
 resize-tool -w 800 -o ./resized/ image.jpg
 
+# Overwrite original files (no new filename with dimensions)
+resize-tool -w 800 --overwrite image.jpg
+
 # Batch process all images in directory
 resize-tool -b -w 1200 /path/to/image/directory
+
+# Batch process and overwrite original files
+resize-tool -b -w 1200 --overwrite /path/to/image/directory
 
 # Use multiple threads for batch processing
 resize-tool -b --workers 8 -w 1920 /path/to/image/directory
@@ -160,6 +166,7 @@ resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 | `--batch`      | `-b`  | false   | Batch process all images in directory                   |
 | `--workers`    |       | 4       | Number of parallel workers for batch processing         |
 | `--verbose`    | `-v`  | false   | Enable verbose output                                   |
+| `--overwrite`  |       | false   | Overwrite original files instead of creating new ones   |
 | `--help`       | `-h`  |         | Show help message                                       |
 
 ## Output Filename Format
@@ -168,6 +175,8 @@ Resized files will automatically include dimension information:
 
 - Original file: `photo.jpg`
 - Output file: `photo_800x600.jpg`
+
+**Note**: When using `--overwrite`, the original file is replaced and no dimension suffix is added.
 
 ## Examples
 
@@ -227,8 +236,14 @@ done
 # Specify output directory
 ./resize-tool -w 800 -o ./resized/ image.jpg
 
+# Overwrite original file (replace in place)
+./resize-tool -w 800 --overwrite image.jpg
+
 # Batch process all images in directory
 ./resize-tool -b -w 1200 /path/to/image/directory
+
+# Batch process and overwrite original files
+./resize-tool -b -w 1200 --overwrite /path/to/image/directory
 
 # Batch process with multiple threads
 ./resize-tool -b --workers 8 -w 1920 /path/to/image/directory
@@ -236,7 +251,7 @@ done
 # Verbose output mode
 ./resize-tool -v -w 800 image.jpg
 
-# Combine multiple options
+# Combine multiple options (Note: --overwrite cannot be used with --output)
 ./resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 ```
 

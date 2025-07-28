@@ -135,8 +135,14 @@ resize-tool -q 85 -w 1000 image.jpg
 # 指定输出目录
 resize-tool -w 800 -o ./resized/ image.jpg
 
+# 覆盖原始文件（不生成带尺寸的新文件名）
+resize-tool -w 800 --overwrite image.jpg
+
 # 批量处理目录下所有图片
 resize-tool -b -w 1200 /path/to/image/directory
+
+# 批量处理并覆盖原始文件
+resize-tool -b -w 1200 --overwrite /path/to/image/directory
 
 # 批量处理时使用多线程
 resize-tool -b --workers 8 -w 1920 /path/to/image/directory
@@ -160,6 +166,7 @@ resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 | `--batch`      | `-b` | false  | 批量处理目录下所有图片               |
 | `--workers`    |      | 4      | 批量处理时的并行线程数               |
 | `--verbose`    | `-v` | false  | 启用详细输出                         |
+| `--overwrite`  |      | false  | 覆盖原始文件，不创建新文件           |
 | `--help`       | `-h` |        | 显示帮助信息                         |
 
 ## 输出文件名格式
@@ -168,6 +175,8 @@ resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 
 - 原始文件：`photo.jpg`
 - 输出文件：`photo_800x600.jpg`
+
+**注意**：使用 `--overwrite` 时，会直接替换原始文件，不会添加尺寸后缀。
 
 ## 示例
 
@@ -227,8 +236,14 @@ done
 # 指定输出目录
 ./resize-tool -w 800 -o ./resized/ image.jpg
 
+# 覆盖原始文件（直接替换）
+./resize-tool -w 800 --overwrite image.jpg
+
 # 批量处理目录下所有图片
 ./resize-tool -b -w 1200 /path/to/image/directory
+
+# 批量处理并覆盖原始文件
+./resize-tool -b -w 1200 --overwrite /path/to/image/directory
 
 # 批量处理并使用多线程
 ./resize-tool -b --workers 8 -w 1920 /path/to/image/directory
@@ -236,7 +251,7 @@ done
 # 详细输出模式
 ./resize-tool -v -w 800 image.jpg
 
-# 组合多个选项
+# 组合多个选项（注意：--overwrite 不能与 --output 同时使用）
 ./resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 ```
 
