@@ -31,6 +31,7 @@ var (
 	batchMode bool   // Whether to process all images in a directory
 	workers   int    // Number of worker goroutines for batch processing
 	verbose   bool   // Enable verbose output
+	overwrite bool   // Whether to overwrite original files
 
 	// Flags to track if dimensions were explicitly set by the user
 	widthSet  bool
@@ -52,6 +53,7 @@ Example usage:
 		resize-tool input.jpg --width 800
 		resize-tool input.jpg --height 600
 		resize-tool images/ --batch --width 1024 --output resized/
+		resize-tool input.jpg --width 800 --overwrite
 `,
 	Args: cobra.ExactArgs(1),
 	Run:  processImages,
@@ -98,6 +100,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&batchMode, "batch", "b", false, "Batch process all images in directory")
 	rootCmd.Flags().IntVarP(&workers, "workers", "", 4, "Number of worker goroutines for batch processing")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
+	rootCmd.Flags().BoolVarP(&overwrite, "overwrite", "r", false, "Overwrite original files instead of creating new ones")
 
 	// PreRun: Validate and set up parameters before running the main command
 	rootCmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -270,6 +273,9 @@ It preserves aspect ratio if required, saves the output, and prints information 
 func resizeImage(inputPath string) error {
 	if verbose {
 		fmt.Printf("Processing: %s\n", inputPath)
+		if overwrite {
+			fmt.Printf("  Warning: Will overwrite original file\n")
+		}
 	}
 
 	// Open and decode the input image file
@@ -399,8 +405,19 @@ func calculateTargetSize(originalWidth, originalHeight int) (int, int) {
 /*
 generateOutputPath creates the output file path for the resized image,
 including the new dimensions in the filename and using the specified output directory if provided.
+If overwrite is enabled, returns the original file path or the same filename in the output directory.
 */
 func generateOutputPath(inputPath, outputDir string, width, height int) string {
+	// If overwrite mode is enabled, return original file path or same filename in output directory
+	if overwrite {
+		if outputDir != "" {
+			filename := filepath.Base(inputPath)
+			return filepath.Join(outputDir, filename)
+		}
+		return inputPath
+	}
+
+	// Original logic: generate new filename with dimensions
 	dir := filepath.Dir(inputPath)
 	if outputDir != "" {
 		dir = outputDir
