@@ -129,6 +129,12 @@ func init() {
 			slog.Error("Quality must be between 1 and 100")
 			os.Exit(1)
 		}
+
+		// Validate overwrite and output flags combination
+		if overwrite && outputDir != "" {
+			slog.Error("Cannot use --overwrite with --output: --overwrite replaces original files in place")
+			os.Exit(1)
+		}
 	}
 }
 
@@ -405,15 +411,11 @@ func calculateTargetSize(originalWidth, originalHeight int) (int, int) {
 /*
 generateOutputPath creates the output file path for the resized image,
 including the new dimensions in the filename and using the specified output directory if provided.
-If overwrite is enabled, returns the original file path or the same filename in the output directory.
+If overwrite is enabled, returns the original file path (ignoring outputDir).
 */
 func generateOutputPath(inputPath, outputDir string, width, height int) string {
-	// If overwrite mode is enabled, return original file path or same filename in output directory
+	// If overwrite mode is enabled, always return original file path
 	if overwrite {
-		if outputDir != "" {
-			filename := filepath.Base(inputPath)
-			return filepath.Join(outputDir, filename)
-		}
 		return inputPath
 	}
 
