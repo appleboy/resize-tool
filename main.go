@@ -100,7 +100,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&batchMode, "batch", "b", false, "Batch process all images in directory")
 	rootCmd.Flags().IntVarP(&workers, "workers", "", 4, "Number of worker goroutines for batch processing")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.Flags().BoolVarP(&overwrite, "overwrite", "r", false, "Overwrite original files instead of creating new ones")
+	rootCmd.Flags().BoolVar(&overwrite, "overwrite", false, "Overwrite original files instead of creating new ones")
 
 	// PreRun: Validate and set up parameters before running the main command
 	rootCmd.PreRun = func(cmd *cobra.Command, args []string) {
