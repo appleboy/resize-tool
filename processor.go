@@ -137,11 +137,18 @@ func resizeImage(inputPath string) error {
 		fmt.Printf("Output: %s\n", outputPath)
 
 		// Print file size information
-		originalInfo, _ := os.Stat(inputPath)
-		newInfo, _ := os.Stat(outputPath)
-
-		fmt.Printf("File size: %s -> %s\n",
-			formatFileSize(originalInfo.Size()), formatFileSize(newInfo.Size()))
+		originalInfo, err := os.Stat(inputPath)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Failed to get original file info: %v", err))
+		} else {
+			newInfo, err := os.Stat(outputPath)
+			if err != nil {
+				slog.Error(fmt.Sprintf("Failed to get output file info: %v", err))
+			} else {
+				fmt.Printf("File size: %s -> %s\n",
+					formatFileSize(originalInfo.Size()), formatFileSize(newInfo.Size()))
+			}
+		}
 	}
 
 	return nil
