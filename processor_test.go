@@ -383,7 +383,6 @@ func TestProcessImages(t *testing.T) {
 		name        string
 		setupFlags  func()
 		setupInput  func() string
-		expectExit  bool
 		expectPanic bool
 	}{
 		{
@@ -401,7 +400,6 @@ func TestProcessImages(t *testing.T) {
 				}
 				return imagePath
 			},
-			expectExit: false,
 		},
 		{
 			name: "directory with batch mode",
@@ -429,7 +427,6 @@ func TestProcessImages(t *testing.T) {
 
 				return dirPath
 			},
-			expectExit: false,
 		},
 	}
 
