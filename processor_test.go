@@ -299,10 +299,14 @@ func TestResizeImage(t *testing.T) {
 				if err != nil {
 					t.Fatalf("Failed to create fake file: %v", err)
 				}
+				defer func() {
+					if cerr := file.Close(); cerr != nil {
+						t.Fatalf("Failed to close fake file: %v", cerr)
+					}
+				}()
 				if _, err := file.WriteString("not an image"); err != nil {
 					t.Fatalf("Failed to write to fake file: %v", err)
 				}
-				file.Close()
 				return filePath
 			},
 			expectError: true,
@@ -323,10 +327,14 @@ func TestResizeImage(t *testing.T) {
 				if err != nil {
 					t.Fatalf("Failed to create invalid file: %v", err)
 				}
+				defer func() {
+					if cerr := file.Close(); cerr != nil {
+						t.Fatalf("Failed to close invalid file: %v", cerr)
+					}
+				}()
 				if _, err := file.WriteString("not valid image data"); err != nil {
 					t.Fatalf("Failed to write to invalid file: %v", err)
 				}
-				file.Close()
 				return filePath
 			},
 			expectError: true,
