@@ -6,6 +6,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -343,7 +344,7 @@ func TestResizeImage(t *testing.T) {
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("Expected error containing %q, but got nil", tt.errorMsg)
-				} else if !containsString(err.Error(), tt.errorMsg) {
+				} else if !strings.Contains(err.Error(), tt.errorMsg) {
 					t.Errorf("Expected error containing %q, got %q", tt.errorMsg, err.Error())
 				}
 			} else {
@@ -366,18 +367,6 @@ func TestResizeImage(t *testing.T) {
 }
 
 // Helper function to check if string contains substring
-func containsString(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
-		(len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-			func() bool {
-				for i := 0; i <= len(s)-len(substr); i++ {
-					if s[i:i+len(substr)] == substr {
-						return true
-					}
-				}
-				return false
-			}())))
-}
 
 func TestProcessImages(t *testing.T) {
 	tempDir := t.TempDir()
