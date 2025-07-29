@@ -508,7 +508,7 @@ func TestGenerateOutputPathEdgeCases(t *testing.T) {
 	}{
 		{
 			name:      "Windows path style",
-			inputPath: "C:\\path\\to\\image.jpg",
+			inputPath: filepath.Join("C:", "path", "to", "image.jpg"),
 			outputDir: "",
 			width:     800,
 			height:    600,
@@ -516,7 +516,7 @@ func TestGenerateOutputPathEdgeCases(t *testing.T) {
 				resetGlobals()
 				overwrite = false
 			},
-			expected: "C:\\path\\to\\image_800x600.jpg",
+			expected: filepath.Join("C:", "path", "to", "image_800x600.jpg"),
 		},
 		{
 			name:      "No extension",
