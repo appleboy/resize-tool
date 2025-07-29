@@ -25,8 +25,8 @@ func createTestImage(path string, width, height int) error {
 	// Fill with a gradient pattern to make it interesting
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			r := uint8((x * 255) / width)
-			g := uint8((y * 255) / height)
+			r := uint8((x * 255) / width)  // #nosec G115 - Safe conversion for test data
+			g := uint8((y * 255) / height) // #nosec G115 - Safe conversion for test data
 			b := uint8(128)
 			img.Set(x, y, color.RGBA{r, g, b, 255})
 		}
@@ -294,8 +294,13 @@ func TestResizeImage(t *testing.T) {
 			setupImage: func() string {
 				// Create a text file with unsupported extension
 				filePath := filepath.Join(tempDir, "fake.xyz")
-				file, _ := os.Create(filePath)
-				file.WriteString("not an image")
+				file, err := os.Create(filePath)
+				if err != nil {
+					t.Fatalf("Failed to create fake file: %v", err)
+				}
+				if _, err := file.WriteString("not an image"); err != nil {
+					t.Fatalf("Failed to write to fake file: %v", err)
+				}
 				file.Close()
 				return filePath
 			},
@@ -313,8 +318,13 @@ func TestResizeImage(t *testing.T) {
 			setupImage: func() string {
 				// Create a file with image extension but invalid content
 				filePath := filepath.Join(tempDir, "invalid.png")
-				file, _ := os.Create(filePath)
-				file.WriteString("not valid image data")
+				file, err := os.Create(filePath)
+				if err != nil {
+					t.Fatalf("Failed to create invalid file: %v", err)
+				}
+				if _, err := file.WriteString("not valid image data"); err != nil {
+					t.Fatalf("Failed to write to invalid file: %v", err)
+				}
 				file.Close()
 				return filePath
 			},
@@ -408,11 +418,17 @@ func TestProcessImages(t *testing.T) {
 			setupInput: func() string {
 				// Create a directory with test images
 				dirPath := filepath.Join(tempDir, "batch_test")
-				os.MkdirAll(dirPath, 0o755)
+				if err := os.MkdirAll(dirPath, 0o755); err != nil {
+					t.Fatalf("Failed to create batch test directory: %v", err)
+				}
 
 				// Create multiple test images
-				createTestImage(filepath.Join(dirPath, "img1.png"), 200, 150)
-				createTestImage(filepath.Join(dirPath, "img2.png"), 300, 200)
+				if err := createTestImage(filepath.Join(dirPath, "img1.png"), 200, 150); err != nil {
+					t.Fatalf("Failed to create test image 1: %v", err)
+				}
+				if err := createTestImage(filepath.Join(dirPath, "img2.png"), 300, 200); err != nil {
+					t.Fatalf("Failed to create test image 2: %v", err)
+				}
 
 				return dirPath
 			},
