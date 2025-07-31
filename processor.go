@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/appleboy/com/file"
 	"github.com/disintegration/imaging"
 	"github.com/spf13/cobra"
 )
@@ -146,7 +147,7 @@ func resizeImage(inputPath string) error {
 				slog.Error(fmt.Sprintf("Failed to get output file info: %v", err))
 			} else {
 				fmt.Printf("File size: %s -> %s\n",
-					formatFileSize(originalInfo.Size()), formatFileSize(newInfo.Size()))
+					file.FormatSize(originalInfo.Size()), file.FormatSize(newInfo.Size()))
 			}
 		}
 	}
