@@ -69,6 +69,13 @@ jobs:
         with:
           flags: ${{ matrix.os }},go-${{ matrix.go }}
 
+  vulnerability-scanning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@0.28.0
         with:
