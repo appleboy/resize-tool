@@ -33,15 +33,22 @@ func setupConfig() {
 	rootCmd.AddCommand(createVersionCommand())
 
 	// Register command-line flags and bind them to variables
-	rootCmd.Flags().IntVarP(&width, "width", "w", 0, "Output width (pixels, 0=auto based on height)")
-	rootCmd.Flags().IntVarP(&height, "height", "", 0, "Output height (pixels, 0=auto based on width)")
+	rootCmd.Flags().
+		IntVarP(&width, "width", "w", 0, "Output width (pixels, 0=auto based on height)")
+	rootCmd.Flags().
+		IntVarP(&height, "height", "", 0, "Output height (pixels, 0=auto based on width)")
 	rootCmd.Flags().IntVarP(&quality, "quality", "q", 95, "JPEG quality (1-100)")
-	rootCmd.Flags().StringVarP(&outputDir, "output", "o", "", "Output directory (default: same as input)")
-	rootCmd.Flags().BoolVarP(&keepRatio, "keep-ratio", "k", false, "Keep aspect ratio when both width and height are specified")
-	rootCmd.Flags().BoolVarP(&batchMode, "batch", "b", false, "Batch process all images in directory")
-	rootCmd.Flags().IntVarP(&workers, "workers", "", 4, "Number of worker goroutines for batch processing")
+	rootCmd.Flags().
+		StringVarP(&outputDir, "output", "o", "", "Output directory (default: same as input)")
+	rootCmd.Flags().
+		BoolVarP(&keepRatio, "keep-ratio", "k", false, "Keep aspect ratio when both width and height are specified")
+	rootCmd.Flags().
+		BoolVarP(&batchMode, "batch", "b", false, "Batch process all images in directory")
+	rootCmd.Flags().
+		IntVarP(&workers, "workers", "", 4, "Number of worker goroutines for batch processing")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.Flags().BoolVar(&overwrite, "overwrite", false, "Overwrite original files instead of creating new ones")
+	rootCmd.Flags().
+		BoolVar(&overwrite, "overwrite", false, "Overwrite original files instead of creating new ones")
 
 	// PreRun: Validate and set up parameters before running the main command
 	rootCmd.PreRun = validateConfig
@@ -77,7 +84,9 @@ func validateConfig(cmd *cobra.Command, args []string) {
 
 	// Validate overwrite and output flags combination
 	if overwrite && outputDir != "" {
-		slog.Error("Cannot use --overwrite with --output: --overwrite replaces original files in place")
+		slog.Error(
+			"Cannot use --overwrite with --output: --overwrite replaces original files in place",
+		)
 		os.Exit(1)
 	}
 }

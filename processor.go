@@ -77,7 +77,8 @@ func resizeImage(inputPath string) error {
 	var resized image.Image
 
 	// Choose resizing method based on flags
-	if (widthSet && heightSet && keepRatio) || (!widthSet && heightSet) || (widthSet && !heightSet) {
+	if (widthSet && heightSet && keepRatio) || (!widthSet && heightSet) ||
+		(widthSet && !heightSet) {
 		// Keep aspect ratio
 		switch {
 		case widthSet && !heightSet:
