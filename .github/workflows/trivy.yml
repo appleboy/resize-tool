@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   vulnerability-scanning:
     runs-on: ubuntu-latest
@@ -16,12 +20,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@0.28.0
+      - name: Run Trivy vulnerability scanner (table output)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL,HIGH"
+
+      - name: Run Trivy vulnerability scanner (SARIF)
+        uses: aquasecurity/trivy-action@0.33.1
+        if: always()
         with:
           scan-type: "fs"
           ignore-unfixed: true
           format: "sarif"
           output: "trivy-results.sarif"
-          exit-code: "1"
           severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
