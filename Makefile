@@ -27,6 +27,11 @@ test:             ## Run tests
 	@echo "Running tests..."
 	go test -v ./...
 
+lint:             ## Run linter and format code
+	@echo "Running linter..."
+	golangci-lint run --timeout 5m
+	golangci-lint fmt
+
 clean:            ## Clean build files
 	@echo "Cleaning build files..."
 	rm -f $(BINARY_NAME)
@@ -61,4 +66,4 @@ help:             ## Print this help message.
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: all build build-dir deps test clean run run-example release help
+.PHONY: all build build-dir deps test lint clean run run-example release help
