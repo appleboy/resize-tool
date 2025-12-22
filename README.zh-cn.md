@@ -5,6 +5,8 @@
 [![Lint and Testing](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml)
 [![Trivy Security Scan](https://github.com/appleboy/resize-tool/actions/workflows/trivy.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/trivy.yml)
 
+[![幻灯片](https://img.shields.io/badge/幻灯片-SpeakerDeck-009287?logo=speakerdeck)](https://speakerdeck.com/appleboy/the-smart-choice-for-command-line-image-resizing)
+
 ![Go 图片缩放工具](./images/resize-tool.png)
 
 一个用 Go 语言开发，简单但功能强大的图片缩放工具。

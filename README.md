@@ -5,6 +5,8 @@
 [![Lint and Testing](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml)
 [![Trivy Security Scan](https://github.com/appleboy/resize-tool/actions/workflows/trivy.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/trivy.yml)
 
+[![Slides](https://img.shields.io/badge/Slides-SpeakerDeck-009287?logo=speakerdeck)](https://speakerdeck.com/appleboy/the-smart-choice-for-command-line-image-resizing)
+
 ![Go Image Resize Tool](./images/resize-tool.png)
 
 A simple yet powerful image resizing tool built with Go.
