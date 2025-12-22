@@ -5,6 +5,8 @@
 [![Lint and Testing](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml)
 [![Trivy Security Scan](https://github.com/appleboy/resize-tool/actions/workflows/trivy.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/trivy.yml)
 
+![Go 圖片縮放工具](./images/resize-tool.png)
+
 一個用 Go 語言打造，簡單但功能強大的圖片縮放工具。
 
 ## 目錄

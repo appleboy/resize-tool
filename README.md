@@ -5,6 +5,8 @@
 [![Lint and Testing](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/testing.yml)
 [![Trivy Security Scan](https://github.com/appleboy/resize-tool/actions/workflows/trivy.yml/badge.svg)](https://github.com/appleboy/resize-tool/actions/workflows/trivy.yml)
 
+![Go Image Resize Tool](./images/resize-tool.png)
+
 A simple yet powerful image resizing tool built with Go.
 
 ## Table of Contents
