@@ -30,6 +30,9 @@ test:             ## Run tests
 lint:             ## Run linter and format code
 	@echo "Running linter..."
 	golangci-lint run --timeout 5m
+
+format:           ## Format code using golangci-lint
+	@echo "Formatting code..."
 	golangci-lint fmt
 
 clean:            ## Clean build files
@@ -66,4 +69,4 @@ help:             ## Print this help message.
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: all build build-dir deps test lint clean run run-example release help
+.PHONY: all build build-dir deps test lint format clean run run-example release help

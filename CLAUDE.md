@@ -17,6 +17,9 @@ go test -v -run TestFunctionName ./...
 # Run linter
 make lint
 
+# Format code
+make format
+
 # Install dependencies
 make deps
 
