@@ -770,8 +770,8 @@ func TestExpandGlobPattern(t *testing.T) {
 		},
 		{
 			name:          "match all JPG/JPEG files",
-			pattern:       filepath.Join(tempDir, "image*.jpg") + "*", // Matches both .jpg and .jpeg
-			expectedCount: 1,                                           // Only .jpg, not .jpeg with this pattern
+			pattern:       filepath.Join(tempDir, "image*.jpg") + "*",
+			expectedCount: 1, // Only .jpg, not .jpeg with this pattern
 			expectError:   false,
 		},
 		{
@@ -898,7 +898,10 @@ func TestProcessMultipleFiles(t *testing.T) {
 			if !overwrite {
 				for _, inputFile := range tt.files {
 					// Check that at least one output file with the input file base name exists
-					baseName := strings.TrimSuffix(filepath.Base(inputFile), filepath.Ext(inputFile))
+					baseName := strings.TrimSuffix(
+						filepath.Base(inputFile),
+						filepath.Ext(inputFile),
+					)
 					outputPath := filepath.Dir(inputFile)
 					if outputDir != "" {
 						outputPath = outputDir

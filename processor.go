@@ -56,7 +56,7 @@ func processImages(cmd *cobra.Command, args []string) {
 	}
 
 	// Single argument - process as before
-	inputPath := args[0]
+	inputPath := args[0] // #nosec G602 -- cobra.MinimumNArgs(1) ensures args is not empty
 
 	// Check if the input contains a glob pattern
 	if containsGlobPattern(inputPath) {
