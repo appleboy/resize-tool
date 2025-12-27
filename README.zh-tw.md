@@ -45,6 +45,7 @@
 
 - 支援多種圖片格式：JPEG、PNG、GIF、TIFF、BMP
 - **🎯 智慧等比例縮放**：只指定寬度或高度時，另一邊自動等比例計算
+- **🎯 Glob 模式支援**：使用萬用字元模式如 `*.png` 或 `images/**/*.jpg` 處理多個檔案
 - 彈性的縮放選項
 - 可選擇是否保持長寬比
 - 可調整 JPEG 品質
@@ -143,6 +144,22 @@ resize-tool -w 800 -o ./resized/ image.jpg
 # 覆蓋原始檔案（不產生帶尺寸的新檔名）
 resize-tool -w 800 --overwrite image.jpg
 
+# 🎯 使用 glob 模式處理多個檔案
+# 用引號包住 - 程式展開模式
+resize-tool -w 1200 "images/*.png"
+
+# 不用引號 - shell 展開模式（兩種都可以）
+resize-tool -w 1200 images/*.png
+
+# 🎯 使用 glob 模式處理子目錄中的檔案
+resize-tool -w 1920 "photos/**/*.jpg"
+
+# 🎯 使用特定檔案模式並指定輸出目錄
+resize-tool -w 800 -o ./resized/ "vacation_*.jpg"
+
+# 🎯 直接處理多個指定的檔案
+resize-tool -w 1024 file1.png file2.jpg file3.png
+
 # 批次處理目錄下所有圖片
 resize-tool -b -w 1200 /path/to/image/directory
 
@@ -186,6 +203,30 @@ resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 ## 範例
 
 ### 1. 批次處理多張圖片
+
+**使用 Glob 模式（推薦）：**
+
+```bash
+# 🎯 處理所有 PNG 檔（用引號 - 程式展開）
+resize-tool -w 1200 "images/*.png"
+
+# 🎯 處理所有 PNG 檔（不用引號 - shell 展開，兩種都可以）
+resize-tool -w 1200 images/*.png
+
+# 🎯 處理目前目錄下所有 JPG 檔
+resize-tool --height 800 "*.jpg"
+
+# 🎯 直接處理多個指定的檔案
+resize-tool -w 1920 -o ./resized/ file1.jpg file2.png file3.jpg
+
+# 🎯 處理特定前綴的所有圖片
+resize-tool -w 1920 -o ./resized/ "vacation_*.{jpg,png}"
+
+# 🎯 處理子目錄中的圖片（依 shell 支援而定）
+resize-tool -w 1024 "photos/**/*.jpg"
+```
+
+**使用 Shell 迴圈：**
 
 ```bash
 # 處理目前目錄下所有 jpg 檔
@@ -243,6 +284,14 @@ done
 
 # 覆蓋原始檔案（直接替換）
 ./resize-tool -w 800 --overwrite image.jpg
+
+# 🎯 使用 glob 模式處理多個檔案
+./resize-tool -w 1200 "images/*.png"
+./resize-tool -w 1200 images/*.png  # 不用引號也可以
+./resize-tool --height 800 "photos/*.jpg"
+
+# 🎯 直接處理多個指定檔案
+./resize-tool -w 1920 -o ./output/ file1.jpg file2.png file3.jpg
 
 # 批次處理目錄下所有圖片
 ./resize-tool -b -w 1200 /path/to/image/directory

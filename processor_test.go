@@ -586,3 +586,412 @@ func BenchmarkGenerateOutputPath(b *testing.B) {
 		generateOutputPath(inputPath, outputDir, width, height)
 	}
 }
+
+// Tests for glob pattern support
+
+func TestContainsGlobPattern(t *testing.T) {
+	tests := []struct {
+		name     string
+		path     string
+		expected bool
+	}{
+		{
+			name:     "pattern with asterisk",
+			path:     "images/*.png",
+			expected: true,
+		},
+		{
+			name:     "pattern with question mark",
+			path:     "image?.png",
+			expected: true,
+		},
+		{
+			name:     "pattern with brackets",
+			path:     "image[123].png",
+			expected: true,
+		},
+		{
+			name:     "pattern with double asterisk",
+			path:     "photos/**/*.jpg",
+			expected: true,
+		},
+		{
+			name:     "normal file path without pattern",
+			path:     "images/photo.png",
+			expected: false,
+		},
+		{
+			name:     "directory path without pattern",
+			path:     "/path/to/images/",
+			expected: false,
+		},
+		{
+			name:     "empty string",
+			path:     "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := containsGlobPattern(tt.path)
+			if got != tt.expected {
+				t.Errorf("containsGlobPattern(%q) = %v, want %v", tt.path, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestIsImageFile(t *testing.T) {
+	tests := []struct {
+		name     string
+		path     string
+		expected bool
+	}{
+		{
+			name:     "JPEG file with jpg extension",
+			path:     "photo.jpg",
+			expected: true,
+		},
+		{
+			name:     "JPEG file with jpeg extension",
+			path:     "photo.jpeg",
+			expected: true,
+		},
+		{
+			name:     "PNG file",
+			path:     "photo.png",
+			expected: true,
+		},
+		{
+			name:     "GIF file",
+			path:     "photo.gif",
+			expected: true,
+		},
+		{
+			name:     "TIFF file with tiff extension",
+			path:     "photo.tiff",
+			expected: true,
+		},
+		{
+			name:     "TIFF file with tif extension",
+			path:     "photo.tif",
+			expected: true,
+		},
+		{
+			name:     "BMP file",
+			path:     "photo.bmp",
+			expected: true,
+		},
+		{
+			name:     "uppercase extension",
+			path:     "photo.PNG",
+			expected: true,
+		},
+		{
+			name:     "mixed case extension",
+			path:     "photo.JpG",
+			expected: true,
+		},
+		{
+			name:     "text file",
+			path:     "document.txt",
+			expected: false,
+		},
+		{
+			name:     "PDF file",
+			path:     "document.pdf",
+			expected: false,
+		},
+		{
+			name:     "no extension",
+			path:     "photo",
+			expected: false,
+		},
+		{
+			name:     "path with directory",
+			path:     "/path/to/photo.jpg",
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := isImageFile(tt.path)
+			if got != tt.expected {
+				t.Errorf("isImageFile(%q) = %v, want %v", tt.path, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestExpandGlobPattern(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Create test files
+	testFiles := []struct {
+		path    string
+		isImage bool
+	}{
+		{filepath.Join(tempDir, "image1.png"), true},
+		{filepath.Join(tempDir, "image2.jpg"), true},
+		{filepath.Join(tempDir, "image3.jpeg"), true},
+		{filepath.Join(tempDir, "document.txt"), false},
+		{filepath.Join(tempDir, "photo1.gif"), true},
+		{filepath.Join(tempDir, "photo2.bmp"), true},
+	}
+
+	// Create the test files
+	for _, tf := range testFiles {
+		if tf.isImage {
+			if err := createTestImage(tf.path, 100, 100); err != nil {
+				t.Fatalf("Failed to create test image %s: %v", tf.path, err)
+			}
+		} else {
+			file, err := os.Create(tf.path)
+			if err != nil {
+				t.Fatalf("Failed to create test file %s: %v", tf.path, err)
+			}
+			file.Close()
+		}
+	}
+
+	tests := []struct {
+		name          string
+		pattern       string
+		expectedCount int
+		expectError   bool
+	}{
+		{
+			name:          "match all PNG files",
+			pattern:       filepath.Join(tempDir, "*.png"),
+			expectedCount: 1,
+			expectError:   false,
+		},
+		{
+			name:          "match all JPG/JPEG files",
+			pattern:       filepath.Join(tempDir, "image*.jpg") + "*", // Matches both .jpg and .jpeg
+			expectedCount: 1,                                           // Only .jpg, not .jpeg with this pattern
+			expectError:   false,
+		},
+		{
+			name:          "match all image files",
+			pattern:       filepath.Join(tempDir, "*"),
+			expectedCount: 5, // All image files, excluding .txt
+			expectError:   false,
+		},
+		{
+			name:          "no matches",
+			pattern:       filepath.Join(tempDir, "nonexistent*.png"),
+			expectedCount: 0,
+			expectError:   false,
+		},
+		{
+			name:          "match specific prefix",
+			pattern:       filepath.Join(tempDir, "photo*"),
+			expectedCount: 2, // photo1.gif and photo2.bmp
+			expectError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			files, err := expandGlobPattern(tt.pattern)
+
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("expandGlobPattern() expected error, got nil")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("expandGlobPattern() unexpected error: %v", err)
+				}
+				if len(files) != tt.expectedCount {
+					t.Errorf("expandGlobPattern() returned %d files, want %d. Files: %v",
+						len(files), tt.expectedCount, files)
+				}
+				// Verify all returned files are image files
+				for _, file := range files {
+					if !isImageFile(file) {
+						t.Errorf("expandGlobPattern() returned non-image file: %s", file)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestProcessMultipleFiles(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Create test images
+	testFiles := []string{
+		filepath.Join(tempDir, "test1.png"),
+		filepath.Join(tempDir, "test2.png"),
+		filepath.Join(tempDir, "test3.png"),
+	}
+
+	for _, path := range testFiles {
+		if err := createTestImage(path, 200, 150); err != nil {
+			t.Fatalf("Failed to create test image %s: %v", path, err)
+		}
+	}
+
+	tests := []struct {
+		name       string
+		setupFlags func()
+		files      []string
+	}{
+		{
+			name: "process multiple files with width only",
+			setupFlags: func() {
+				resetGlobals()
+				width = 100
+				widthSet = true
+				heightSet = false
+				verbose = false
+			},
+			files: testFiles,
+		},
+		{
+			name: "process multiple files with custom output",
+			setupFlags: func() {
+				resetGlobals()
+				width = 150
+				widthSet = true
+				heightSet = false
+				outputDir = filepath.Join(tempDir, "output")
+				verbose = false
+				// Pre-create output directory to avoid race conditions in test
+				_ = os.MkdirAll(filepath.Join(tempDir, "output"), 0o755)
+			},
+			files: testFiles[:2], // Only first two files
+		},
+		{
+			name: "process multiple files with verbose",
+			setupFlags: func() {
+				resetGlobals()
+				height = 100
+				widthSet = false
+				heightSet = true
+				verbose = true
+			},
+			files: testFiles[1:], // Skip first file
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupFlags()
+
+			// This test primarily checks that the function doesn't panic
+			// and processes files without errors
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("processMultipleFiles() caused panic: %v", r)
+				}
+			}()
+
+			processMultipleFiles(tt.files)
+
+			// Verify output files were created (if not in overwrite mode)
+			if !overwrite {
+				for _, inputFile := range tt.files {
+					// Check that at least one output file with the input file base name exists
+					baseName := strings.TrimSuffix(filepath.Base(inputFile), filepath.Ext(inputFile))
+					outputPath := filepath.Dir(inputFile)
+					if outputDir != "" {
+						outputPath = outputDir
+					}
+
+					// Find files with matching base name in output directory
+					pattern := filepath.Join(outputPath, baseName+"_*.png")
+					matches, err := filepath.Glob(pattern)
+					if err != nil {
+						t.Errorf("Error searching for output files: %v", err)
+						continue
+					}
+					if len(matches) == 0 {
+						t.Errorf("No output file found matching pattern %q", pattern)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestProcessImagesWithGlobPattern(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Create test images
+	testImages := []string{
+		filepath.Join(tempDir, "photo1.png"),
+		filepath.Join(tempDir, "photo2.png"),
+		filepath.Join(tempDir, "image1.jpg"),
+	}
+
+	for _, path := range testImages {
+		if err := createTestImage(path, 300, 200); err != nil {
+			t.Fatalf("Failed to create test image %s: %v", path, err)
+		}
+	}
+
+	tests := []struct {
+		name       string
+		setupFlags func()
+		pattern    string
+	}{
+		{
+			name: "glob pattern matching multiple PNG files",
+			setupFlags: func() {
+				resetGlobals()
+				width = 150
+				widthSet = true
+				heightSet = false
+				verbose = false
+			},
+			pattern: filepath.Join(tempDir, "photo*.png"),
+		},
+		{
+			name: "glob pattern matching single file",
+			setupFlags: func() {
+				resetGlobals()
+				height = 100
+				widthSet = false
+				heightSet = true
+				verbose = false
+			},
+			pattern: filepath.Join(tempDir, "image1.jpg"),
+		},
+		{
+			name: "glob pattern matching all images",
+			setupFlags: func() {
+				resetGlobals()
+				width = 200
+				widthSet = true
+				heightSet = false
+				verbose = true
+			},
+			pattern: filepath.Join(tempDir, "*"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupFlags()
+
+			// Create mock cobra command and args
+			cmd := &cobra.Command{}
+			args := []string{tt.pattern}
+
+			// This test checks that processImages handles glob patterns correctly
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("processImages() with glob pattern caused panic: %v", r)
+				}
+			}()
+
+			processImages(cmd, args)
+		})
+	}
+}

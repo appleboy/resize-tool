@@ -45,6 +45,7 @@ A simple yet powerful image resizing tool built with Go.
 
 - Support for multiple image formats: JPEG, PNG, GIF, TIFF, BMP
 - **🎯 Smart Aspect Ratio**: When only width or height is specified, the other dimension is automatically calculated proportionally
+- **🎯 Glob Pattern Support**: Process multiple files using wildcard patterns like `*.png` or `images/**/*.jpg`
 - Flexible resizing options
 - Aspect ratio preservation options
 - Adjustable JPEG quality
@@ -143,6 +144,22 @@ resize-tool -w 800 -o ./resized/ image.jpg
 # Overwrite original files (no new filename with dimensions)
 resize-tool -w 800 --overwrite image.jpg
 
+# 🎯 Process multiple files using glob patterns
+# With quotes - program expands the pattern
+resize-tool -w 1200 "images/*.png"
+
+# Without quotes - shell expands the pattern (both work the same)
+resize-tool -w 1200 images/*.png
+
+# 🎯 Process files in subdirectories with glob patterns
+resize-tool -w 1920 "photos/**/*.jpg"
+
+# 🎯 Process specific file patterns with custom output
+resize-tool -w 800 -o ./resized/ "vacation_*.jpg"
+
+# 🎯 Process multiple specific files directly
+resize-tool -w 1024 file1.png file2.jpg file3.png
+
 # Batch process all images in directory
 resize-tool -b -w 1200 /path/to/image/directory
 
@@ -186,6 +203,30 @@ Resized files will automatically include dimension information:
 ## Examples
 
 ### 1. Batch Process Multiple Images
+
+**Using Glob Patterns (Recommended):**
+
+```bash
+# 🎯 Process all PNG files (with quotes - program expands)
+resize-tool -w 1200 "images/*.png"
+
+# 🎯 Process all PNG files (without quotes - shell expands, both work)
+resize-tool -w 1200 images/*.png
+
+# 🎯 Process all JPG files in current directory
+resize-tool --height 800 "*.jpg"
+
+# 🎯 Process multiple specific files directly
+resize-tool -w 1920 -o ./resized/ file1.jpg file2.png file3.jpg
+
+# 🎯 Process all images with specific prefix
+resize-tool -w 1920 -o ./resized/ "vacation_*.{jpg,png}"
+
+# 🎯 Process images in subdirectories (shell-dependent)
+resize-tool -w 1024 "photos/**/*.jpg"
+```
+
+**Using Shell Loops:**
 
 ```bash
 # Process all jpg files in current directory
@@ -243,6 +284,14 @@ done
 
 # Overwrite original file (replace in place)
 ./resize-tool -w 800 --overwrite image.jpg
+
+# 🎯 Process multiple files with glob patterns
+./resize-tool -w 1200 "images/*.png"
+./resize-tool -w 1200 images/*.png  # Without quotes also works
+./resize-tool --height 800 "photos/*.jpg"
+
+# 🎯 Process multiple specific files
+./resize-tool -w 1920 -o ./output/ file1.jpg file2.png file3.jpg
 
 # Batch process all images in directory
 ./resize-tool -b -w 1200 /path/to/image/directory
