@@ -11,9 +11,31 @@
 
 A simple yet powerful image resizing tool built with Go.
 
+## Why This Tool?
+
+In the era of digital content creation, image processing has become an essential part of daily work. Whether you're a blogger, social media manager, web developer, or content creator dealing with large volumes of images, you often face these challenges:
+
+**Pain Points for Bloggers and Content Creators:**
+
+- Need to resize high-resolution photos for faster web page loading
+- Different platforms (Facebook, Instagram, Medium) have different image size requirements
+- Batch processing travel photos or product images is time-consuming with online tools and raises privacy concerns
+- GUI software (like Photoshop) is overpowered and resource-heavy for simple resizing tasks
+
+**Other Common Use Cases:**
+
+- **Web Developers**: Need to quickly generate multiple sizes for responsive images (thumbnail, medium, large)
+- **E-commerce Professionals**: Product images need uniform sizes and file sizes for website consistency and performance
+- **Digital Marketers**: Prepare visual assets that meet specifications for different advertising platforms
+- **Photographers**: Quickly generate portfolio thumbnails or client preview images
+- **System Administrators**: Automate server-side processing of user-uploaded images
+
+This command-line tool is designed to provide a **fast, lightweight, and automatable** solution. You don't need to open heavy GUI software or worry about privacy issues with online services—just one command to complete image resizing. More importantly, it supports batch processing and script integration, making repetitive image processing tasks simple and easy, allowing creators to focus their time on what truly matters: content creation.
+
 ## Table of Contents
 
 - [Go Image Resize Tool](#go-image-resize-tool)
+  - [Why This Tool?](#why-this-tool)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Installation](#installation)
