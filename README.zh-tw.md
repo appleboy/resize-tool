@@ -138,7 +138,7 @@ resize-tool --help
 ### 基本用法
 
 ```bash
-# 預設縮放為 800x600 像素
+# 預設寬度為 800 像素（高度自動等比例計算）
 resize-tool image.jpg
 
 # 🎯 只指定寬度，高度自動等比例計算（推薦）
@@ -218,7 +218,7 @@ resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 縮放後的檔案會自動加上尺寸資訊：
 
 - 原始檔案：`photo.jpg`
-- 輸出檔案：`photo_800x600.jpg`
+- 輸出檔案：`photo_800x600.jpg`（實際高度取決於原圖長寬比）
 
 **注意**：使用 `--overwrite` 時，會直接替換原始檔案，不會加上尺寸後綴。
 

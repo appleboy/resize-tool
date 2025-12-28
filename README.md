@@ -138,7 +138,7 @@ resize-tool --help
 ### Basic Usage
 
 ```bash
-# Default resize to 800x600 pixels
+# Default resize to width 800px (height auto-calculated to maintain aspect ratio)
 resize-tool image.jpg
 
 # 🎯 Specify only width, height auto-calculated proportionally (recommended)
@@ -218,7 +218,7 @@ resize-tool -w 1920 --height 1080 -q 90 -o ./output/ -k -v image.jpg
 Resized files will automatically include dimension information:
 
 - Original file: `photo.jpg`
-- Output file: `photo_800x600.jpg`
+- Output file: `photo_800x600.jpg` (actual height depends on original aspect ratio)
 
 **Note**: When using `--overwrite`, the original file is replaced and no dimension suffix is added.
 

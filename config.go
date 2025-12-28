@@ -63,9 +63,9 @@ func validateConfig(cmd *cobra.Command, args []string) {
 	// If neither width nor height is set, use default values
 	if !widthSet && !heightSet {
 		width = 800
-		height = 600
+		height = 0 // Auto-calculate based on aspect ratio
 		widthSet = true
-		heightSet = true
+		heightSet = false
 	}
 
 	// Validate input parameters
