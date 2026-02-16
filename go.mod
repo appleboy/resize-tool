@@ -1,9 +1,9 @@
 module resize-tool
 
-go 1.24.0
+go 1.25
 
 require (
-	github.com/appleboy/com v1.1.1
+	github.com/appleboy/com v1.2.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/spf13/cobra v1.10.2
 )
