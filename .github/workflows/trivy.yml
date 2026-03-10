@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner (table output)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: "fs"
           ignore-unfixed: true
@@ -30,7 +30,7 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Run Trivy vulnerability scanner (SARIF)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         if: always()
         with:
           scan-type: "fs"
