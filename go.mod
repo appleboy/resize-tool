@@ -1,6 +1,6 @@
 module resize-tool
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/appleboy/com v1.2.0
@@ -11,5 +11,5 @@ require (
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	golang.org/x/image v0.36.0 // indirect
+	golang.org/x/image v0.37.0 // indirect
 )
