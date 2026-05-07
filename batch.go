@@ -87,15 +87,7 @@ Returns a slice of file paths and any error encountered.
 */
 func collectImageFiles(dirPath string) ([]string, error) {
 	var imageFiles []string
-	supportedExts := map[string]bool{
-		".jpg":  true,
-		".jpeg": true,
-		".png":  true,
-		".gif":  true,
-		".tiff": true,
-		".tif":  true,
-		".bmp":  true,
-	}
+	supportedExts := supportedImageExts()
 
 	// Walk through the directory and collect files with supported extensions
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {

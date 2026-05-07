@@ -363,8 +363,16 @@ func TestResizeImage(t *testing.T) {
 				// Check if output file was created (for successful cases)
 				if !overwrite {
 					// Get the actual dimensions after resizing to match the real output path
-					actualWidth, actualHeight := calculateTargetSize(400, 300) // Original test image size
-					expectedOutput := generateOutputPath(imagePath, outputDir, actualWidth, actualHeight)
+					actualWidth, actualHeight := calculateTargetSize(
+						400,
+						300,
+					) // Original test image size
+					expectedOutput := generateOutputPath(
+						imagePath,
+						outputDir,
+						actualWidth,
+						actualHeight,
+					)
 					if _, statErr := os.Stat(expectedOutput); os.IsNotExist(statErr) {
 						t.Errorf("Expected output file %q was not created", expectedOutput)
 					}
@@ -418,10 +426,18 @@ func TestProcessImages(t *testing.T) {
 				}
 
 				// Create multiple test images
-				if err := createTestImage(filepath.Join(dirPath, "img1.png"), 200, 150); err != nil {
+				if err := createTestImage(
+					filepath.Join(dirPath, "img1.png"),
+					200,
+					150,
+				); err != nil {
 					t.Fatalf("Failed to create test image 1: %v", err)
 				}
-				if err := createTestImage(filepath.Join(dirPath, "img2.png"), 300, 200); err != nil {
+				if err := createTestImage(
+					filepath.Join(dirPath, "img2.png"),
+					300,
+					200,
+				); err != nil {
 					t.Fatalf("Failed to create test image 2: %v", err)
 				}
 

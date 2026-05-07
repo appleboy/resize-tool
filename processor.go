@@ -178,15 +178,15 @@ func resizeImage(inputPath string) error {
 	ext := strings.ToLower(filepath.Ext(inputPath))
 
 	switch ext {
-	case ".jpg", ".jpeg":
+	case extJPG, extJPEG:
 		saveErr = imaging.Save(resized, outputPath, imaging.JPEGQuality(quality))
-	case ".png":
+	case extPNG:
 		saveErr = imaging.Save(resized, outputPath)
-	case ".gif":
+	case extGIF:
 		saveErr = imaging.Save(resized, outputPath)
-	case ".tiff", ".tif":
+	case extTIFF, extTIF:
 		saveErr = imaging.Save(resized, outputPath)
-	case ".bmp":
+	case extBMP:
 		saveErr = imaging.Save(resized, outputPath)
 	default:
 		return fmt.Errorf("unsupported image format: %s", ext)
@@ -286,17 +286,8 @@ isImageFile checks if the file has a supported image extension.
 Returns true if the file extension is one of: jpg, jpeg, png, gif, tiff, tif, bmp.
 */
 func isImageFile(path string) bool {
-	supportedExts := map[string]bool{
-		".jpg":  true,
-		".jpeg": true,
-		".png":  true,
-		".gif":  true,
-		".tiff": true,
-		".tif":  true,
-		".bmp":  true,
-	}
 	ext := strings.ToLower(filepath.Ext(path))
-	return supportedExts[ext]
+	return supportedImageExts()[ext]
 }
 
 /*
