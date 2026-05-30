@@ -24,8 +24,8 @@ func createTestImage(path string, width, height int) error {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	// Fill with a gradient pattern to make it interesting
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
+	for y := range height {
+		for x := range width {
 			r := uint8((x * 255) / width)  // #nosec G115 - Safe conversion for test data
 			g := uint8((y * 255) / height) // #nosec G115 - Safe conversion for test data
 			b := uint8(128)
@@ -347,7 +347,7 @@ func TestResizeImage(t *testing.T) {
 			tt.setupFlags()
 			imagePath := tt.setupImage()
 
-			err := resizeImage(imagePath)
+			err := resizeImage(imagePath, true)
 
 			if tt.expectError {
 				if err == nil {
@@ -583,7 +583,7 @@ func BenchmarkCalculateTargetSize(b *testing.B) {
 	heightSet = false
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		calculateTargetSize(1920, 1080)
 	}
 }
@@ -598,7 +598,7 @@ func BenchmarkGenerateOutputPath(b *testing.B) {
 	height := 1080
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		generateOutputPath(inputPath, outputDir, width, height)
 	}
 }

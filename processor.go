@@ -66,10 +66,14 @@ func processImages(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Check if the input path exists
+	// Check if the input path exists and is accessible
 	info, err := os.Stat(inputPath)
-	if os.IsNotExist(err) {
-		slog.Error(fmt.Sprintf("Path does not exist: %s", inputPath))
+	if err != nil {
+		if os.IsNotExist(err) {
+			slog.Error(fmt.Sprintf("Path does not exist: %s", inputPath))
+		} else {
+			slog.Error(fmt.Sprintf("Cannot access path: %s, error: %v", inputPath, err))
+		}
 		os.Exit(1)
 	}
 
@@ -78,7 +82,7 @@ func processImages(cmd *cobra.Command, args []string) {
 		processBatch(inputPath)
 	} else {
 		// Process a single image file
-		if err := resizeImage(inputPath); err != nil {
+		if err := resizeImage(inputPath, true); err != nil {
 			slog.Error(fmt.Sprintf("Failed to process image: %v", err))
 			os.Exit(1)
 		}
@@ -91,7 +95,7 @@ resizeFiles dispatches a list of image files: a single file is resized directly
 */
 func resizeFiles(files []string) {
 	if len(files) == 1 {
-		if err := resizeImage(files[0]); err != nil {
+		if err := resizeImage(files[0], true); err != nil {
 			slog.Error(fmt.Sprintf("Failed to process image: %v", err))
 			os.Exit(1)
 		}
@@ -102,9 +106,12 @@ func resizeFiles(files []string) {
 
 /*
 resizeImage resizes a single image file according to the specified parameters.
-It preserves aspect ratio if required, saves the output, and prints information if verbose is enabled.
+It preserves aspect ratio if required, saves the output, and prints information
+if verbose is enabled. When detailed is true (single-file runs) it prints the
+per-file result block; in the worker pool detailed is false so concurrent
+goroutines don't interleave their output.
 */
-func resizeImage(inputPath string) error {
+func resizeImage(inputPath string, detailed bool) error {
 	if verbose {
 		fmt.Printf("Processing: %s\n", inputPath)
 		if overwrite {
@@ -118,10 +125,10 @@ func resizeImage(inputPath string) error {
 		return fmt.Errorf("failed to open image %s: %v", inputPath, err)
 	}
 
-	// Get original image dimensions
+	// Get original image dimensions (Dx/Dy account for a non-zero bounds origin)
 	originalBounds := src.Bounds()
-	originalWidth := originalBounds.Max.X
-	originalHeight := originalBounds.Max.Y
+	originalWidth := originalBounds.Dx()
+	originalHeight := originalBounds.Dy()
 
 	if verbose {
 		fmt.Printf("  Original size: %dx%d\n", originalWidth, originalHeight)
@@ -144,18 +151,19 @@ func resizeImage(inputPath string) error {
 	case !widthSet && heightSet:
 		// Only height set, width is auto-calculated
 		resized = imaging.Resize(src, 0, targetHeight, imaging.Lanczos)
-	case keepRatio:
-		// Both set, keep ratio (fit within bounds)
+	case keepRatio && targetWidth > 0 && targetHeight > 0:
+		// Both set to positive values, keep ratio (fit within bounds)
 		resized = imaging.Fit(src, targetWidth, targetHeight, imaging.Lanczos)
 	default:
-		// Force resize to exact dimensions (may distort aspect ratio)
+		// Force resize to the given dimensions (a 0 dimension is auto-derived
+		// by imaging; with both set and no keep-ratio this may distort).
 		resized = imaging.Resize(src, targetWidth, targetHeight, imaging.Lanczos)
 	}
 
 	// Get actual resized dimensions (used for output filename)
 	actualBounds := resized.Bounds()
-	actualWidth := actualBounds.Max.X
-	actualHeight := actualBounds.Max.Y
+	actualWidth := actualBounds.Dx()
+	actualHeight := actualBounds.Dy()
 
 	// Generate output file path
 	outputPath := generateOutputPath(inputPath, outputDir, actualWidth, actualHeight)
@@ -182,8 +190,9 @@ func resizeImage(inputPath string) error {
 		return fmt.Errorf("failed to save image: %v", saveErr)
 	}
 
-	// Print result information if verbose or not in batch mode
-	if verbose || !batchMode {
+	// Print the per-file result block for single-file runs or in verbose mode.
+	// Worker-pool calls pass detailed=false to avoid interleaved concurrent output.
+	if verbose || detailed {
 		fmt.Printf("Resized %s: %dx%d -> %dx%d\n",
 			filepath.Base(inputPath), originalWidth, originalHeight, actualWidth, actualHeight)
 		fmt.Printf("Output: %s\n", outputPath)
@@ -311,7 +320,7 @@ Similar to processBatch but works with an explicit list rather than a directory 
 */
 func processMultipleFiles(files []string) {
 	if verbose {
-		fmt.Printf("Processing %d files from glob pattern\n", len(files))
+		fmt.Printf("Processing %d files\n", len(files))
 		fmt.Printf("Using %d workers\n", workers)
 	}
 

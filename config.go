@@ -81,6 +81,10 @@ func validateConfig(cmd *cobra.Command, args []string) {
 		slog.Error("Quality must be between 1 and 100")
 		os.Exit(1)
 	}
+	if workers < 1 {
+		slog.Error("Number of workers must be at least 1")
+		os.Exit(1)
+	}
 
 	// Validate overwrite and output flags combination
 	if overwrite && outputDir != "" {
