@@ -15,7 +15,6 @@ It collects image files, distributes them to worker goroutines, and prints a sum
 func processBatch(dirPath string) {
 	if verbose {
 		fmt.Printf("Processing directory: %s\n", dirPath)
-		fmt.Printf("Using %d workers\n", workers)
 	}
 
 	// Collect all image files in the directory
@@ -42,6 +41,9 @@ func runWorkerPool(files []string) {
 
 	// Never start more workers than there are files to process.
 	workerCount := min(workers, len(files))
+	if verbose {
+		fmt.Printf("Using %d workers\n", workerCount)
+	}
 
 	// Create channels for jobs and results for the worker pool
 	jobs := make(chan string, len(files))

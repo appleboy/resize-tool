@@ -321,7 +321,6 @@ Similar to processBatch but works with an explicit list rather than a directory 
 func processMultipleFiles(files []string) {
 	if verbose {
 		fmt.Printf("Processing %d files\n", len(files))
-		fmt.Printf("Using %d workers\n", workers)
 	}
 
 	runWorkerPool(files)
