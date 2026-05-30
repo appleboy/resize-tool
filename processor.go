@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/appleboy/com/file"
 	"github.com/disintegration/imaging"
@@ -42,16 +41,7 @@ func processImages(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 
-		if len(imageFiles) == 1 {
-			// Single image file
-			if err := resizeImage(imageFiles[0]); err != nil {
-				slog.Error(fmt.Sprintf("Failed to process image: %v", err))
-				os.Exit(1)
-			}
-		} else {
-			// Multiple image files
-			processMultipleFiles(imageFiles)
-		}
+		resizeFiles(imageFiles)
 		return
 	}
 
@@ -72,16 +62,7 @@ func processImages(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 
-		if len(files) == 1 {
-			// Single file matched, process it normally
-			if err := resizeImage(files[0]); err != nil {
-				slog.Error(fmt.Sprintf("Failed to process image: %v", err))
-				os.Exit(1)
-			}
-		} else {
-			// Multiple files matched, process them in batch
-			processMultipleFiles(files)
-		}
+		resizeFiles(files)
 		return
 	}
 
@@ -102,6 +83,21 @@ func processImages(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 	}
+}
+
+/*
+resizeFiles dispatches a list of image files: a single file is resized directly
+(with rich per-file output), while multiple files go through the worker pool.
+*/
+func resizeFiles(files []string) {
+	if len(files) == 1 {
+		if err := resizeImage(files[0]); err != nil {
+			slog.Error(fmt.Sprintf("Failed to process image: %v", err))
+			os.Exit(1)
+		}
+		return
+	}
+	processMultipleFiles(files)
 }
 
 /*
@@ -140,22 +136,18 @@ func resizeImage(inputPath string) error {
 
 	var resized image.Image
 
-	// Choose resizing method based on flags
-	if (widthSet && heightSet && keepRatio) || (!widthSet && heightSet) ||
-		(widthSet && !heightSet) {
-		// Keep aspect ratio
-		switch {
-		case widthSet && !heightSet:
-			// Only width set, height is auto-calculated
-			resized = imaging.Resize(src, targetWidth, 0, imaging.Lanczos)
-		case !widthSet && heightSet:
-			// Only height set, width is auto-calculated
-			resized = imaging.Resize(src, 0, targetHeight, imaging.Lanczos)
-		default:
-			// Both set, but keep ratio (fit within bounds)
-			resized = imaging.Fit(src, targetWidth, targetHeight, imaging.Lanczos)
-		}
-	} else {
+	// Choose resizing method based on which dimensions were set and the keep-ratio flag
+	switch {
+	case widthSet && !heightSet:
+		// Only width set, height is auto-calculated
+		resized = imaging.Resize(src, targetWidth, 0, imaging.Lanczos)
+	case !widthSet && heightSet:
+		// Only height set, width is auto-calculated
+		resized = imaging.Resize(src, 0, targetHeight, imaging.Lanczos)
+	case keepRatio:
+		// Both set, keep ratio (fit within bounds)
+		resized = imaging.Fit(src, targetWidth, targetHeight, imaging.Lanczos)
+	default:
 		// Force resize to exact dimensions (may distort aspect ratio)
 		resized = imaging.Resize(src, targetWidth, targetHeight, imaging.Lanczos)
 	}
@@ -180,13 +172,7 @@ func resizeImage(inputPath string) error {
 	switch ext {
 	case extJPG, extJPEG:
 		saveErr = imaging.Save(resized, outputPath, imaging.JPEGQuality(quality))
-	case extPNG:
-		saveErr = imaging.Save(resized, outputPath)
-	case extGIF:
-		saveErr = imaging.Save(resized, outputPath)
-	case extTIFF, extTIF:
-		saveErr = imaging.Save(resized, outputPath)
-	case extBMP:
+	case extPNG, extGIF, extTIFF, extTIF, extBMP:
 		saveErr = imaging.Save(resized, outputPath)
 	default:
 		return fmt.Errorf("unsupported image format: %s", ext)
@@ -287,7 +273,7 @@ Returns true if the file extension is one of: jpg, jpeg, png, gif, tiff, tif, bm
 */
 func isImageFile(path string) bool {
 	ext := strings.ToLower(filepath.Ext(path))
-	return supportedImageExts()[ext]
+	return supportedImageExts[ext]
 }
 
 /*
@@ -320,8 +306,8 @@ func expandGlobPattern(pattern string) ([]string, error) {
 }
 
 /*
-processMultipleFiles processes multiple image files using a worker pool.
-Similar to processBatch but works with a pre-defined list of files.
+processMultipleFiles processes a pre-defined list of image files using a worker pool.
+Similar to processBatch but works with an explicit list rather than a directory walk.
 */
 func processMultipleFiles(files []string) {
 	if verbose {
@@ -329,52 +315,5 @@ func processMultipleFiles(files []string) {
 		fmt.Printf("Using %d workers\n", workers)
 	}
 
-	fmt.Printf("Found %d image files\n", len(files))
-
-	// Create channels for jobs and results for the worker pool
-	jobs := make(chan string, len(files))
-	results := make(chan error, len(files))
-
-	// Start worker goroutines to process images concurrently
-	var wg sync.WaitGroup
-	for i := 0; i < workers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for filePath := range jobs {
-				err := resizeImage(filePath)
-				results <- err
-			}
-		}()
-	}
-
-	// Send image file paths to the jobs channel
-	go func() {
-		defer close(jobs)
-		for _, filePath := range files {
-			jobs <- filePath
-		}
-	}()
-
-	// Close the results channel after all workers are done
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	// Collect and count results from workers
-	successCount := 0
-	errorCount := 0
-	for err := range results {
-		if err != nil {
-			if verbose {
-				fmt.Printf("Error: %v\n", err)
-			}
-			errorCount++
-		} else {
-			successCount++
-		}
-	}
-
-	fmt.Printf("Batch processing completed: %d success, %d errors\n", successCount, errorCount)
+	runWorkerPool(files)
 }

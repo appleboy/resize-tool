@@ -11,15 +11,13 @@ const (
 	extBMP  = ".bmp"
 )
 
-// supportedImageExts returns the set of image file extensions the tool accepts.
-func supportedImageExts() map[string]bool {
-	return map[string]bool{
-		extJPG:  true,
-		extJPEG: true,
-		extPNG:  true,
-		extGIF:  true,
-		extTIFF: true,
-		extTIF:  true,
-		extBMP:  true,
-	}
+// supportedImageExts is the set of image file extensions the tool accepts.
+var supportedImageExts = map[string]bool{
+	extJPG:  true,
+	extJPEG: true,
+	extPNG:  true,
+	extGIF:  true,
+	extTIFF: true,
+	extTIF:  true,
+	extBMP:  true,
 }

@@ -26,9 +26,6 @@ var (
 
 // setupConfig initializes the CLI configuration, flags, and validation
 func setupConfig() {
-	// Set up logger
-	setupLogger()
-
 	// Add version command
 	rootCmd.AddCommand(createVersionCommand())
 
@@ -56,16 +53,19 @@ func setupConfig() {
 
 // validateConfig validates the configuration parameters
 func validateConfig(cmd *cobra.Command, args []string) {
+	// Configure the logger now that flags (including --verbose) have been parsed
+	setupLogger()
+
 	// Check if dimensions were explicitly set by the user
 	widthSet = cmd.Flags().Changed("width")
 	heightSet = cmd.Flags().Changed("height")
 
-	// If neither width nor height is set, use default values
+	// If neither width nor height is set, default to width 800 (height
+	// auto-calculated from the aspect ratio). height/heightSet already hold
+	// their zero values here, so only the width side needs setting.
 	if !widthSet && !heightSet {
 		width = 800
-		height = 0 // Auto-calculate based on aspect ratio
 		widthSet = true
-		heightSet = false
 	}
 
 	// Validate input parameters
