@@ -67,13 +67,9 @@ func processImages(cmd *cobra.Command, args []string) {
 	}
 
 	// Check if the input path exists and is accessible
-	info, err := os.Stat(inputPath)
+	info, err := statInputPath(inputPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			slog.Error(fmt.Sprintf("Path does not exist: %s", inputPath))
-		} else {
-			slog.Error(fmt.Sprintf("Cannot access path: %s, error: %v", inputPath, err))
-		}
+		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -87,6 +83,23 @@ func processImages(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 	}
+}
+
+/*
+statInputPath stats a single input path, returning a descriptive error if it
+does not exist or cannot be accessed. Keeping this separate from processImages
+(which calls os.Exit) makes the not-exist vs other-error handling unit-testable
+and guarantees a nil FileInfo is never paired with a nil error.
+*/
+func statInputPath(inputPath string) (os.FileInfo, error) {
+	info, err := os.Stat(inputPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("path does not exist: %s", inputPath)
+		}
+		return nil, fmt.Errorf("cannot access path %s: %w", inputPath, err)
+	}
+	return info, nil
 }
 
 /*

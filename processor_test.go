@@ -429,6 +429,46 @@ func TestResizeImageKeepRatioZeroDimension(t *testing.T) {
 	}
 }
 
+func TestStatInputPath(t *testing.T) {
+	tempDir := t.TempDir()
+
+	regularFile := filepath.Join(tempDir, "afile")
+	if err := os.WriteFile(regularFile, []byte("x"), 0o600); err != nil {
+		t.Fatalf("failed to create file: %v", err)
+	}
+
+	// Both failure modes must return a non-nil error AND a nil FileInfo, so the
+	// caller never dereferences a nil FileInfo. The "parent is a file" case
+	// triggers a non-IsNotExist error (ENOTDIR on unix) — the original panic.
+	errorCases := []struct {
+		name string
+		path string
+	}{
+		{"non-not-exist error (parent is a file)", filepath.Join(regularFile, "sub")},
+		{"non-existent path", filepath.Join(tempDir, "does-not-exist")},
+	}
+	for _, tc := range errorCases {
+		t.Run(tc.name, func(t *testing.T) {
+			info, err := statInputPath(tc.path)
+			if err == nil {
+				t.Fatalf("expected an error, got nil")
+			}
+			if info != nil {
+				t.Errorf("expected nil FileInfo on error, got %v", info)
+			}
+		})
+	}
+
+	// A valid path returns a usable FileInfo and no error.
+	info, err := statInputPath(regularFile)
+	if err != nil {
+		t.Fatalf("unexpected error for valid path: %v", err)
+	}
+	if info == nil || info.IsDir() {
+		t.Errorf("expected a non-dir FileInfo for %s", regularFile)
+	}
+}
+
 func TestProcessImages(t *testing.T) {
 	tempDir := t.TempDir()
 
