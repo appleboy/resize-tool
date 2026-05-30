@@ -382,7 +382,52 @@ func TestResizeImage(t *testing.T) {
 	}
 }
 
-// Helper function to check if string contains substring
+func TestResizeImageKeepRatioZeroDimension(t *testing.T) {
+	tempDir := t.TempDir()
+
+	resetGlobals()
+	width = 0
+	height = 200
+	widthSet = true
+	heightSet = true
+	keepRatio = true
+
+	imagePath := filepath.Join(tempDir, "keepratio.png")
+	if err := createTestImage(imagePath, 400, 300); err != nil {
+		t.Fatalf("Failed to create test image: %v", err)
+	}
+
+	if err := resizeImage(imagePath, true); err != nil {
+		t.Fatalf("resizeImage() returned error: %v", err)
+	}
+
+	// A zero width combined with keep-ratio must not produce a 0x0 image: the
+	// width is derived from the explicit height while preserving aspect ratio.
+	matches, err := filepath.Glob(filepath.Join(tempDir, "keepratio_*.png"))
+	if err != nil {
+		t.Fatalf("glob error: %v", err)
+	}
+	if len(matches) != 1 {
+		t.Fatalf("expected exactly one output file, got %d: %v", len(matches), matches)
+	}
+
+	f, err := os.Open(matches[0])
+	if err != nil {
+		t.Fatalf("failed to open output file: %v", err)
+	}
+	defer f.Close()
+
+	cfg, err := png.DecodeConfig(f)
+	if err != nil {
+		t.Fatalf("failed to decode output config: %v", err)
+	}
+	if cfg.Width <= 0 || cfg.Height <= 0 {
+		t.Errorf("expected non-zero output dimensions, got %dx%d", cfg.Width, cfg.Height)
+	}
+	if cfg.Height != 200 {
+		t.Errorf("expected derived height 200, got %d", cfg.Height)
+	}
+}
 
 func TestProcessImages(t *testing.T) {
 	tempDir := t.TempDir()

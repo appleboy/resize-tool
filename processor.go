@@ -106,10 +106,11 @@ func resizeFiles(files []string) {
 
 /*
 resizeImage resizes a single image file according to the specified parameters.
-It preserves aspect ratio if required, saves the output, and prints information
-if verbose is enabled. When detailed is true (single-file runs) it prints the
-per-file result block; in the worker pool detailed is false so concurrent
-goroutines don't interleave their output.
+It preserves aspect ratio if required and saves the output. When detailed is
+true (single-file runs) it prints the per-file result block; worker-pool calls
+pass detailed=false so that, without --verbose, the pool prints only its summary
+instead of per-file blocks. With --verbose every call still prints its progress
+and result lines, so concurrent pool output may interleave.
 */
 func resizeImage(inputPath string, detailed bool) error {
 	if verbose {
