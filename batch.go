@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 )
 
@@ -31,29 +30,34 @@ func processBatch(dirPath string) {
 		return
 	}
 
-	fmt.Printf("Found %d image files\n", len(imageFiles))
+	runWorkerPool(imageFiles)
+}
+
+/*
+runWorkerPool resizes the given image files concurrently using a pool of worker
+goroutines and prints a summary of the results.
+*/
+func runWorkerPool(files []string) {
+	fmt.Printf("Found %d image files\n", len(files))
 
 	// Create channels for jobs and results for the worker pool
-	jobs := make(chan string, len(imageFiles))
-	results := make(chan error, len(imageFiles))
+	jobs := make(chan string, len(files))
+	results := make(chan error, len(files))
 
 	// Start worker goroutines to process images concurrently
 	var wg sync.WaitGroup
 	for i := 0; i < workers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for filePath := range jobs {
-				err := resizeImage(filePath)
-				results <- err
+				results <- resizeImage(filePath)
 			}
-		}()
+		})
 	}
 
 	// Send image file paths to the jobs channel
 	go func() {
 		defer close(jobs)
-		for _, filePath := range imageFiles {
+		for _, filePath := range files {
 			jobs <- filePath
 		}
 	}()
@@ -87,7 +91,6 @@ Returns a slice of file paths and any error encountered.
 */
 func collectImageFiles(dirPath string) ([]string, error) {
 	var imageFiles []string
-	supportedExts := supportedImageExts()
 
 	// Walk through the directory and collect files with supported extensions
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -95,11 +98,8 @@ func collectImageFiles(dirPath string) ([]string, error) {
 			return err
 		}
 
-		if !info.IsDir() {
-			ext := strings.ToLower(filepath.Ext(path))
-			if supportedExts[ext] {
-				imageFiles = append(imageFiles, path)
-			}
+		if !info.IsDir() && isImageFile(path) {
+			imageFiles = append(imageFiles, path)
 		}
 
 		return nil
