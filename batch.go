@@ -15,7 +15,6 @@ It collects image files, distributes them to worker goroutines, and prints a sum
 func processBatch(dirPath string) {
 	if verbose {
 		fmt.Printf("Processing directory: %s\n", dirPath)
-		fmt.Printf("Using %d workers\n", workers)
 	}
 
 	// Collect all image files in the directory
@@ -40,16 +39,22 @@ goroutines and prints a summary of the results.
 func runWorkerPool(files []string) {
 	fmt.Printf("Found %d image files\n", len(files))
 
+	// Never start more workers than there are files to process.
+	workerCount := min(workers, len(files))
+	if verbose {
+		fmt.Printf("Using %d workers\n", workerCount)
+	}
+
 	// Create channels for jobs and results for the worker pool
 	jobs := make(chan string, len(files))
 	results := make(chan error, len(files))
 
 	// Start worker goroutines to process images concurrently
 	var wg sync.WaitGroup
-	for i := 0; i < workers; i++ {
+	for range workerCount {
 		wg.Go(func() {
 			for filePath := range jobs {
-				results <- resizeImage(filePath)
+				results <- resizeImage(filePath, false)
 			}
 		})
 	}
@@ -92,13 +97,14 @@ Returns a slice of file paths and any error encountered.
 func collectImageFiles(dirPath string) ([]string, error) {
 	var imageFiles []string
 
-	// Walk through the directory and collect files with supported extensions
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+	// Walk through the directory and collect files with supported extensions.
+	// WalkDir avoids an lstat per entry (it only needs the dir-entry type here).
+	err := filepath.WalkDir(dirPath, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if !info.IsDir() && isImageFile(path) {
+		if !d.IsDir() && isImageFile(path) {
 			imageFiles = append(imageFiles, path)
 		}
 

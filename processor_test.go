@@ -24,8 +24,8 @@ func createTestImage(path string, width, height int) error {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	// Fill with a gradient pattern to make it interesting
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
+	for y := range height {
+		for x := range width {
 			r := uint8((x * 255) / width)  // #nosec G115 - Safe conversion for test data
 			g := uint8((y * 255) / height) // #nosec G115 - Safe conversion for test data
 			b := uint8(128)
@@ -347,7 +347,7 @@ func TestResizeImage(t *testing.T) {
 			tt.setupFlags()
 			imagePath := tt.setupImage()
 
-			err := resizeImage(imagePath)
+			err := resizeImage(imagePath, true)
 
 			if tt.expectError {
 				if err == nil {
@@ -382,7 +382,92 @@ func TestResizeImage(t *testing.T) {
 	}
 }
 
-// Helper function to check if string contains substring
+func TestResizeImageKeepRatioZeroDimension(t *testing.T) {
+	tempDir := t.TempDir()
+
+	resetGlobals()
+	width = 0
+	height = 200
+	widthSet = true
+	heightSet = true
+	keepRatio = true
+
+	imagePath := filepath.Join(tempDir, "keepratio.png")
+	if err := createTestImage(imagePath, 400, 300); err != nil {
+		t.Fatalf("Failed to create test image: %v", err)
+	}
+
+	if err := resizeImage(imagePath, true); err != nil {
+		t.Fatalf("resizeImage() returned error: %v", err)
+	}
+
+	// A zero width combined with keep-ratio must not produce a 0x0 image: the
+	// width is derived from the explicit height while preserving aspect ratio.
+	matches, err := filepath.Glob(filepath.Join(tempDir, "keepratio_*.png"))
+	if err != nil {
+		t.Fatalf("glob error: %v", err)
+	}
+	if len(matches) != 1 {
+		t.Fatalf("expected exactly one output file, got %d: %v", len(matches), matches)
+	}
+
+	f, err := os.Open(matches[0])
+	if err != nil {
+		t.Fatalf("failed to open output file: %v", err)
+	}
+	defer f.Close()
+
+	cfg, err := png.DecodeConfig(f)
+	if err != nil {
+		t.Fatalf("failed to decode output config: %v", err)
+	}
+	if cfg.Width <= 0 || cfg.Height <= 0 {
+		t.Errorf("expected non-zero output dimensions, got %dx%d", cfg.Width, cfg.Height)
+	}
+	if cfg.Height != 200 {
+		t.Errorf("expected derived height 200, got %d", cfg.Height)
+	}
+}
+
+func TestStatInputPath(t *testing.T) {
+	tempDir := t.TempDir()
+
+	regularFile := filepath.Join(tempDir, "afile")
+	if err := os.WriteFile(regularFile, []byte("x"), 0o600); err != nil {
+		t.Fatalf("failed to create file: %v", err)
+	}
+
+	// Both failure modes must return a non-nil error AND a nil FileInfo, so the
+	// caller never dereferences a nil FileInfo. The "parent is a file" case
+	// triggers a non-IsNotExist error (ENOTDIR on unix) — the original panic.
+	errorCases := []struct {
+		name string
+		path string
+	}{
+		{"non-not-exist error (parent is a file)", filepath.Join(regularFile, "sub")},
+		{"non-existent path", filepath.Join(tempDir, "does-not-exist")},
+	}
+	for _, tc := range errorCases {
+		t.Run(tc.name, func(t *testing.T) {
+			info, err := statInputPath(tc.path)
+			if err == nil {
+				t.Fatalf("expected an error, got nil")
+			}
+			if info != nil {
+				t.Errorf("expected nil FileInfo on error, got %v", info)
+			}
+		})
+	}
+
+	// A valid path returns a usable FileInfo and no error.
+	info, err := statInputPath(regularFile)
+	if err != nil {
+		t.Fatalf("unexpected error for valid path: %v", err)
+	}
+	if info == nil || info.IsDir() {
+		t.Errorf("expected a non-dir FileInfo for %s", regularFile)
+	}
+}
 
 func TestProcessImages(t *testing.T) {
 	tempDir := t.TempDir()
@@ -583,7 +668,7 @@ func BenchmarkCalculateTargetSize(b *testing.B) {
 	heightSet = false
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		calculateTargetSize(1920, 1080)
 	}
 }
@@ -598,7 +683,7 @@ func BenchmarkGenerateOutputPath(b *testing.B) {
 	height := 1080
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		generateOutputPath(inputPath, outputDir, width, height)
 	}
 }
