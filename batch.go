@@ -12,6 +12,7 @@ import (
 processBatch processes all supported image files in the specified directory using a worker pool.
 It collects image files, distributes them to worker goroutines, and prints a summary of results.
 */
+//nolint:forbidigo // CLI directory progress and empty-directory results are intentionally printed to stdout.
 func processBatch(dirPath string) {
 	if verbose {
 		fmt.Printf("Processing directory: %s\n", dirPath)
@@ -36,6 +37,7 @@ func processBatch(dirPath string) {
 runWorkerPool resizes the given image files concurrently using a pool of worker
 goroutines and prints a summary of the results.
 */
+//nolint:forbidigo // CLI batch progress and result summaries are intentionally printed to stdout.
 func runWorkerPool(files []string) {
 	fmt.Printf("Found %d image files\n", len(files))
 

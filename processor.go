@@ -58,7 +58,7 @@ func processImages(cmd *cobra.Command, args []string) {
 		}
 
 		if len(files) == 0 {
-			slog.Error(fmt.Sprintf("No image files match pattern: %s", inputPath))
+			slog.Error("No image files match pattern: " + inputPath)
 			os.Exit(1)
 		}
 
@@ -125,6 +125,7 @@ pass detailed=false so that, without --verbose, the pool prints only its summary
 instead of per-file blocks. With --verbose every call still prints its progress
 and result lines, so concurrent pool output may interleave.
 */
+//nolint:forbidigo // CLI image progress and result details are intentionally printed to stdout.
 func resizeImage(inputPath string, detailed bool) error {
 	if verbose {
 		fmt.Printf("Processing: %s\n", inputPath)
@@ -332,6 +333,7 @@ func expandGlobPattern(pattern string) ([]string, error) {
 processMultipleFiles processes a pre-defined list of image files using a worker pool.
 Similar to processBatch but works with an explicit list rather than a directory walk.
 */
+//nolint:forbidigo // CLI file-count progress is intentionally printed to stdout.
 func processMultipleFiles(files []string) {
 	if verbose {
 		fmt.Printf("Processing %d files\n", len(files))
