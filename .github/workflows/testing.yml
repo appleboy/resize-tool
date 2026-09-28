@@ -21,13 +21,13 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            go.tools.sum
           check-latest: true
 
-      - name: Setup golangci-lint
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.12
-          args: --verbose
+      - name: Run golangci-lint
+        run: make lint
 
   test:
     strategy:
@@ -39,7 +39,7 @@ jobs:
             go-build: ~/.cache/go-build
           - os: macos-latest
             go-build: ~/Library/Caches/go-build
-    name: ${{ matrix.os }}
+    name: ${{ matrix.os }} / Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Code

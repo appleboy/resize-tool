@@ -1,3 +1,5 @@
+GO ?= go
+TOOLS_MOD := -modfile=go.tools.mod
 # Go Image Resize Tool Makefile
 
 BINARY_NAME=resize-tool
@@ -28,12 +30,10 @@ test:             ## Run tests
 	go test -v ./...
 
 lint:             ## Run linter and format code
-	@echo "Running linter..."
-	golangci-lint run --timeout 5m
+	$(GO) tool $(TOOLS_MOD) golangci-lint run --timeout 5m
 
 format:           ## Format code using golangci-lint
-	@echo "Formatting code..."
-	golangci-lint fmt
+	$(GO) tool $(TOOLS_MOD) golangci-lint fmt
 
 clean:            ## Clean build files
 	@echo "Cleaning build files..."
@@ -70,3 +70,11 @@ help:             ## Print this help message.
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: all build build-dir deps test lint format clean run run-example release help
+
+.PHONY: fmt
+fmt: ## Format Go files using golangci-lint
+	$(GO) tool $(TOOLS_MOD) golangci-lint fmt
+
+.PHONY: install-tools fmt lint
+install-tools: ## Download pinned Go tools
+	$(GO) mod download $(TOOLS_MOD)

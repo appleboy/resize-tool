@@ -15,6 +15,8 @@ var (
 )
 
 // createVersionCommand creates and returns the version command
+//
+//nolint:forbidigo // The version command intentionally prints version metadata to stdout.
 func createVersionCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
